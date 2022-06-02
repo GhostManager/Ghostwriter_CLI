@@ -42,15 +42,17 @@ func RunDockerComposeInstall(yaml string) {
 			fmt.Println("[+] Proceeding with Django database setup...")
 			seedErr := RunCmd("docker-compose", []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
 			if seedErr != nil {
-				log.Fatalf("[-] Error trying to seed the database: %v\n", seedErr)
+				log.Fatalf("Error trying to seed the database: %v\n", seedErr)
 			}
 			fmt.Println("[+] Proceeding with Django superuser creation...")
 			userErr := RunCmd(
 				"docker-compose", []string{"-f", yaml, "run", "--rm", "django", "python",
 					"manage.py", "createsuperuser", "--noinput"},
 			)
+			// This may fail if the user has already created a superuser, so we don't exit
 			if userErr != nil {
-				log.Fatalf("[-] Error trying to create a superuser: %v\n", userErr)
+				log.Printf("Error trying to create a superuser: %v\n", userErr)
+				log.Println("Error may occur if you've run `install` before or made a superuser manually")
 			}
 			break
 		}
