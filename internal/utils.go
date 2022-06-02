@@ -59,7 +59,7 @@ func DisplayHelp(version string, build string) {
 func GetCwdFromExe() string {
 	exe, err := os.Executable()
 	if err != nil {
-		log.Fatalf("[-] Failed to get path to current executable")
+		log.Fatalf("Failed to get path to current executable")
 	}
 	return filepath.Dir(exe)
 }
@@ -194,7 +194,7 @@ func RunCmd(name string, args []string) error {
 	}
 	exe, err := os.Executable()
 	if err != nil {
-		log.Fatalf("failed to get path to current executable")
+		log.Fatalf("Failed to get path to current executable")
 	}
 	exePath := filepath.Dir(exe)
 	command := exec.Command(path, args...)
@@ -202,11 +202,11 @@ func RunCmd(name string, args []string) error {
 
 	stdout, err := command.StdoutPipe()
 	if err != nil {
-		log.Fatalf("failed to get stdout pipe for running `%s`", name)
+		log.Fatalf("Failed to get stdout pipe for running `%s`", name)
 	}
 	stderr, err := command.StderrPipe()
 	if err != nil {
-		log.Fatalf("failed to get stderr pipe for running `%s`", name)
+		log.Fatalf("Failed to get stderr pipe for running `%s`", name)
 	}
 
 	stdoutScanner := bufio.NewScanner(stdout)
@@ -223,7 +223,7 @@ func RunCmd(name string, args []string) error {
 	}()
 	err = command.Start()
 	if err != nil {
-		log.Fatalf("[-] Error trying to start `%s`: %v\n", name, err)
+		log.Fatalf("Error trying to start `%s`: %v\n", name, err)
 	}
 	err = command.Wait()
 	if err != nil {

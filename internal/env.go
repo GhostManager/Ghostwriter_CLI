@@ -84,7 +84,7 @@ func WriteGhostwriterEnvironmentVariables() {
 	sort.Strings(keys)
 	f, err := os.Create(filepath.Join(GetCwdFromExe(), ".env"))
 	if err != nil {
-		log.Fatalf("[-] Error writing out environment!\n%v", err)
+		log.Fatalf("Error writing out environment!\n%v", err)
 	}
 	defer f.Close()
 	for _, key := range keys {
@@ -95,7 +95,7 @@ func WriteGhostwriterEnvironmentVariables() {
 		}
 
 		if err != nil {
-			log.Fatalf("[-] Failed to write out environment!\n%v", err)
+			log.Fatalf("Failed to write out environment!\n%v", err)
 		}
 	}
 }
@@ -114,15 +114,15 @@ func ParseGhostwriterEnvironmentVariables() {
 	if !FileExists(filepath.Join(GetCwdFromExe(), ".env")) {
 		_, err := os.Create(filepath.Join(GetCwdFromExe(), ".env"))
 		if err != nil {
-			log.Fatalf("the .env doesn't exist and couldn't be created")
+			log.Fatalf("The .env doesn't exist and couldn't be created")
 		}
 	}
 	// Try reading the env file
 	if err := ghostEnv.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Fatalf("error while reading in .env file: %s", err)
+			log.Fatalf("Error while reading in .env file: %s", err)
 		} else {
-			log.Fatalf("error while parsing .env file: %s", err)
+			log.Fatalf("Error while parsing .env file: %s", err)
 		}
 	}
 	WriteGhostwriterEnvironmentVariables()
@@ -166,15 +166,15 @@ func Env(args []string) {
 	switch args[0] {
 	case "get":
 		if len(args) == 1 {
-			log.Fatal("must specify name of variable to get")
+			log.Fatal("Must specify name of variable to get")
 		}
 		for i := 1; i < len(args[1:])+1; i++ {
 			val := ghostEnv.Get(args[i])
-			fmt.Println(strings.ToUpper(args[i]), "=", val)
+			fmt.Printf("\n%s: %s\n", strings.ToUpper(args[i]), val)
 		}
 	case "set":
 		if len(args) != 3 {
-			log.Fatalf("[-] Must supply config name and config value")
+			log.Fatalf("Must supply config name and config value")
 		}
 		if strings.ToLower(args[2]) == "true" {
 			ghostEnv.Set(args[1], true)

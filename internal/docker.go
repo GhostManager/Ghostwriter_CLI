@@ -30,11 +30,11 @@ func RunDockerComposeInstall(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` for first-time installation with %s...\n", yaml)
 	buildErr := RunCmd("docker-compose", []string{"-f", yaml, "build"})
 	if buildErr != nil {
-		log.Fatalf("[-] Error trying to build with %s: %v\n", yaml, buildErr)
+		log.Fatalf("Error trying to build with %s: %v\n", yaml, buildErr)
 	}
 	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
-		log.Fatalf("[-] Error trying to bring up environment with %s: %v\n", yaml, upErr)
+		log.Fatalf("Error trying to bring up environment with %s: %v\n", yaml, upErr)
 	}
 	// Must wait for Django to complete db migrations before seeding the database
 	for {
@@ -70,15 +70,15 @@ func RunDockerComposeUpgrade(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` commands to build containers with %s...\n", yaml)
 	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
 	if downErr != nil {
-		log.Fatalf("[-] Error trying to bring down any running containers with %s: %v\n", yaml, downErr)
+		log.Fatalf("Error trying to bring down any running containers with %s: %v\n", yaml, downErr)
 	}
 	buildErr := RunCmd("docker-compose", []string{"-f", yaml, "build"})
 	if buildErr != nil {
-		log.Fatalf("[-] Error trying to build with %s: %v\n", yaml, buildErr)
+		log.Fatalf("Error trying to build with %s: %v\n", yaml, buildErr)
 	}
 	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
-		log.Fatalf("[-] Error trying to bring up environment with %s: %v\n", yaml, upErr)
+		log.Fatalf("Error trying to bring up environment with %s: %v\n", yaml, upErr)
 	}
 }
 
@@ -88,7 +88,7 @@ func RunDockerComposeRestart(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` to restart containers with %s...\n", yaml)
 	startErr := RunCmd("docker-compose", []string{"-f", yaml, "start"})
 	if startErr != nil {
-		log.Fatalf("[-] Error trying to restart the containers with %s: %v\n", yaml, startErr)
+		log.Fatalf("Error trying to restart the containers with %s: %v\n", yaml, startErr)
 	}
 }
 
@@ -98,7 +98,7 @@ func RunDockerComposeUp(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` to bring down the containers with %s...\n", yaml)
 	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
-		log.Fatalf("[-] Error trying to bring up the containers with %s: %v\n", yaml, upErr)
+		log.Fatalf("Error trying to bring up the containers with %s: %v\n", yaml, upErr)
 	}
 }
 
@@ -108,7 +108,7 @@ func RunDockerComposeDown(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` to bring down the containers with %s...\n", yaml)
 	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
 	if downErr != nil {
-		log.Fatalf("[-] Error trying to bring down the containers with %s: %v\n", yaml, downErr)
+		log.Fatalf("Error trying to bring down the containers with %s: %v\n", yaml, downErr)
 	}
 }
 
@@ -117,11 +117,11 @@ func FetchLogs(containerName string) []string {
 	var logs []string
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Fatalf("failed to get client in logs: %v", err)
+		log.Fatalf("Failed to get client in logs: %v", err)
 	}
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
-		log.Fatalf("failed to get container list: %v", err)
+		log.Fatalf("Failed to get container list: %v", err)
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
@@ -132,7 +132,7 @@ func FetchLogs(containerName string) []string {
 					Tail:       "500",
 				})
 				if err != nil {
-					log.Fatalf("failed to get container logs: %v", err)
+					log.Fatalf("Failed to get container logs: %v", err)
 				}
 				defer reader.Close()
 				// Reference: https://medium.com/@dhanushgopinath/reading-docker-container-logs-with-golang-docker-engine-api-702233fac044
@@ -156,13 +156,13 @@ func FetchLogs(containerName string) []string {
 func isServiceRunning(containerName string) bool {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Fatalf("[-] Failed to get client connection to Docker: %v", err)
+		log.Fatalf("Failed to get client connection to Docker: %v", err)
 	}
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
 		All: true,
 	})
 	if err != nil {
-		log.Fatalf("[-] Failed to get container list from Docker: %v", err)
+		log.Fatalf("Failed to get container list from Docker: %v", err)
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
@@ -212,13 +212,13 @@ func GetRunning() {
 	fmt.Println("[+] Collecting list of running Ghostwriter containers...")
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Fatalf("failed to get client connection to Docker: %v", err)
+		log.Fatalf("Failed to get client connection to Docker: %v", err)
 	}
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
 		All: true,
 	})
 	if err != nil {
-		log.Fatalf("failed to get container list from Docker: %v", err)
+		log.Fatalf("Failed to get container list from Docker: %v", err)
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
@@ -245,7 +245,7 @@ func RunGhostwriterTests() {
 	// Run the unit tests
 	testErr := RunCmd("docker-compose", []string{"-f", "local.yml", "run", "--rm", "django", "python", "manage.py", "test"})
 	if testErr != nil {
-		log.Fatalf("[-] Error trying to run Ghostwriter's tests: %v\n", testErr)
+		log.Fatalf("Error trying to run Ghostwriter's tests: %v\n", testErr)
 	}
 	// Reset the changed env values
 	ghostEnv.Set("HASURA_GRAPHQL_ACTION_SECRET", currentActionSecret)

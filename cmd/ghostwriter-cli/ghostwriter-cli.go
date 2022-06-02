@@ -44,7 +44,7 @@ func main() {
 			internal.GenerateCertificatePackage()
 			internal.RunDockerComposeInstall("production.yml")
 		} else {
-			log.Fatalf("unknown install type; should be 'dev' or 'production'")
+			log.Fatalf("Unknown install type; should be 'dev' or 'production'")
 		}
 
 	// Rebuild the Ghostwriter containers for upgrades or code changes
@@ -65,7 +65,7 @@ func main() {
 			internal.SetProductionMode()
 			internal.RunDockerComposeUpgrade("production.yml")
 		} else {
-			log.Fatalf("unknown install type; should be 'dev' or 'production'")
+			log.Fatalf("Unknown install type; should be 'dev' or 'production'")
 		}
 
 	// Restart the Ghostwriter containers
@@ -84,7 +84,7 @@ func main() {
 			fmt.Println("[+] Restarting production environment")
 			internal.RunDockerComposeRestart("local.yml")
 		} else {
-			log.Fatalf("unknown environment type; should be 'dev' or 'production'")
+			log.Fatalf("Unknown environment type; should be 'dev' or 'production'")
 		}
 
 	// Bring up all Ghostwriter containers
@@ -103,7 +103,7 @@ func main() {
 			fmt.Println("[+] Bringing up production environment")
 			internal.RunDockerComposeUp("production.yml")
 		} else {
-			log.Fatalf("unknown environment type; should be 'dev' or 'production'")
+			log.Fatalf("Unknown environment type; should be 'dev' or 'production'")
 		}
 
 	// Bring down all Ghostwriter containers
@@ -122,7 +122,7 @@ func main() {
 			fmt.Println("[+] Stopping production environment")
 			internal.RunDockerComposeDown("production.yml")
 		} else {
-			log.Fatalf("unknown environment type; should be 'dev' or 'production'")
+			log.Fatalf("Unknown environment type; should be 'dev' or 'production'")
 		}
 
 	// Print the current config or process ``get``and ``set`` commands

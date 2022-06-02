@@ -13,7 +13,7 @@ func GenerateCertificatePackage() error {
 	if !DirExists(filepath.Join(GetCwdFromExe(), "ssl")) {
 		err := os.MkdirAll(filepath.Join(GetCwdFromExe(), "ssl"), os.ModePerm)
 		if err != nil {
-			log.Fatalf("failed to make the `ssl` directory")
+			log.Fatalf("Failed to make the `ssl` directory")
 		}
 		fmt.Println("[+] Successfully made the `ssl` directory")
 	}
