@@ -71,6 +71,11 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("hasura_graphql_metadata_dir", "/metadata")
 	ghostEnv.SetDefault("hasura_graphql_migrations_dir", "/migrations")
 	ghostEnv.SetDefault("hasura_graphql_server_port", 8080)
+
+	// Set some elpful aliases for common settings
+	ghostEnv.RegisterAlias("date_format", "django_date_format")
+	ghostEnv.RegisterAlias("admin_password", "django_superuser_password")
+	ghostEnv.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
 }
 
 // Write the environment variables to the ``.env`` file.
