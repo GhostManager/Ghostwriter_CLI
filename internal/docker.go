@@ -63,7 +63,8 @@ func RunDockerComposeInstall(yaml string) {
 		fmt.Printf("[-] Error trying to restart the `graphql_engine` service: %v\n", restartErr)
 	}
 	fmt.Println("[+] Ghostwriter is ready to go!")
-	fmt.Println("[+] You can get your admin password by running: ghostwriter-cli config get DJANGO_SUPERUSER_PASSWORD")
+	fmt.Printf("[+] You can login as `%s` with this password: %s\n", ghostEnv.GetString("django_superuser_username"), ghostEnv.GetString("django_superuser_password"))
+	fmt.Println("[+] You can get your admin password by running: ghostwriter-cli config get admin_password")
 }
 
 // Execute the ``docker-compose`` commands for re-building or upgrading an
