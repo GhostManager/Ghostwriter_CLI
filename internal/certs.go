@@ -59,7 +59,7 @@ func GenerateCertificatePackage() error {
 			generateDHParam("2048")
 		}
 	} else {
-		fmt.Println("[!] Did not find `openssl` in the PATH")
+		fmt.Println("[!] Did not find `openssl` in the PATH, so skipping keypair generation")
 	}
 
 	return nil
