@@ -26,7 +26,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("django_account_allow_registration", false)
 	ghostEnv.SetDefault("django_account_email_verification", "none")
 	ghostEnv.SetDefault("django_admin_url", "admin/")
-	ghostEnv.SetDefault("django_allowed_hosts", "localhost 127.0.0.1 172.20.0.5 django host.docker.internal ghostwriter.local 0.0.0.0")
+	ghostEnv.SetDefault("django_allowed_hosts", "localhost 127.0.0.1 172.20.0.5 django host.docker.internal ghostwriter.local")
 	ghostEnv.SetDefault("django_compress_enabled", true)
 	ghostEnv.SetDefault("django_date_format", "d M Y")
 	ghostEnv.SetDefault("django_host", "django")
@@ -151,6 +151,21 @@ func SetDevMode() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
+// Update the environment variables to allow a new hostname.
+func AppendAllowedHost(host string) {
+	current := ghostEnv.GetString("django_allowed_hosts")
+	updated_string := fmt.Sprintf("%s %s", current, host)
+	ghostEnv.Set("django_allowed_hosts", updated_string)
+}
+
+// Update the environment variables to disallow a hostname.
+func RemoveAllowedHost(host string) {
+	current := ghostEnv.GetString("django_allowed_hosts")
+	current = strings.Replace(current, host, "", 1)
+	current = strings.Replace(current, "  ", " ", 1)
+	ghostEnv.Set("django_allowed_hosts", strings.TrimSpace(current))
+}
+
 // Review, get, or set environment variables.
 // Prints contents of the .env if no arguments are provided.
 func Env(args []string) {
@@ -194,6 +209,22 @@ func Env(args []string) {
 			ghostEnv.Set(args[1], args[2])
 		}
 		ghostEnv.Get(args[1])
+		WriteGhostwriterEnvironmentVariables()
+		fmt.Printf("[+] Successfully updated configuration in .env\n")
+	case "allowhost":
+		if len(args) != 2 {
+			log.Fatalf("Must supply config name and config value")
+		}
+		new_host := strings.ToLower(args[1])
+		AppendAllowedHost(new_host)
+		WriteGhostwriterEnvironmentVariables()
+		fmt.Printf("[+] Successfully updated configuration in .env\n")
+	case "disallowhost":
+		if len(args) != 2 {
+			log.Fatalf("Must supply config name and config value")
+		}
+		host := strings.ToLower(args[1])
+		RemoveAllowedHost(host)
 		WriteGhostwriterEnvironmentVariables()
 		fmt.Printf("[+] Successfully updated configuration in .env\n")
 

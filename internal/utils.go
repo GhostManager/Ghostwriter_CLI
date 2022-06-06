@@ -41,6 +41,8 @@ func DisplayHelp(version string, build string) {
 	fmt.Println("    ** No parameters will dump the entire config **")
 	fmt.Println("    get [varname ...]")
 	fmt.Println("    set <var name> <var value>")
+	fmt.Println("    allowhost <var hostname/address>")
+	fmt.Println("    disallowhost <var hostname/address>")
 	fmt.Println("  logs <container name>")
 	fmt.Println("    Displays logs for the given container")
 	fmt.Println("    Options: ghostwriter_{django|nginx|postgres|redis|graphql|queue}")
