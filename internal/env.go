@@ -174,8 +174,13 @@ func Env(args []string) {
 			log.Fatal("Must specify name of variable to get")
 		}
 		for i := 1; i < len(args[1:])+1; i++ {
-			val := ghostEnv.Get(args[i])
-			fmt.Printf("\n%s: %s\n", strings.ToUpper(args[i]), val)
+			setting := strings.ToLower(args[i])
+			val := ghostEnv.Get(setting)
+			if val == nil {
+				log.Fatalf("Config variable `%s` not found", setting)
+			} else {
+				fmt.Printf("\n%s: %s\n", strings.ToUpper(setting), val)
+			}
 		}
 	case "set":
 		if len(args) != 3 {
