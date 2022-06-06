@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-var ghostwriterCliVersion = "0.0.2"
-var ghostwriterCliBuildDate = "2 June 2022"
+var ghostwriterCliVersion = "0.0.3"
+var ghostwriterCliBuildDate = "6 June 2022"
 
 func main() {
 	// Display help if no arguments are passed
