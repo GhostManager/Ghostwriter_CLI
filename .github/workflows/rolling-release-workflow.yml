@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   releases-matrix:
@@ -28,8 +26,9 @@ jobs:
           project_path: "./cmd/ghostwriter-cli"
           binary_name: "ghostwriter-cli"
           ldflags: "-s -w"
+          release_tag: rolling
+          overwrite: true
           executable_compression: upx --brute
-          extra_files: LICENSE README.md
 
       - name: Update Rolling Release
         if: "! startsWith(github.event_name, 'pull_request')"
@@ -39,7 +38,6 @@ jobs:
           tag_name: rolling
           prerelease: true
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-          files: ghostwriter-cli-${{ matrix.build.ostype }}-${{ matrix.build.arch }}.zip
           body: |
             Rolling release of Ghostwriter CLI compiled from source (${{ github.sha }})
             This is automatically kept up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
