@@ -15,9 +15,11 @@ jobs:
         goos: [linux, darwin, windows]
         goarch: [amd64]
     steps:
-      - name: Checkout & Build
+      - name: Checkout
         uses: actions/checkout@v3
-      - uses: wangyoucao577/go-release-action@v1.28
+
+      - name: Build
+        uses: wangyoucao577/go-release-action@v1.28
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
