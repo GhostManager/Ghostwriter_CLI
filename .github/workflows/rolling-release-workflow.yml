@@ -1,8 +1,10 @@
 name: Build & Release Binaries
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   releases-matrix:
@@ -15,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Build Binaries
       - uses: wangyoucao577/go-release-action@v1.28
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -25,3 +29,15 @@ jobs:
           ldflags: "-s -w"
           executable_compression: upx --brute
           extra_files: LICENSE README.md
+
+      - name: Update Rolling Release
+        if: "! startsWith(github.event_name, 'pull_request')"
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Rolling Release (unstable)
+          tag_name: rolling
+          prerelease: true
+          files: ghostwriter-cli-${{ matrix.build.ostype }}-${{ matrix.build.arch }}.zip
+          body: |
+            Rolling release of Ghostwriter CLI compiled from source (${{ github.sha }})
+            This is automatically kept up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
