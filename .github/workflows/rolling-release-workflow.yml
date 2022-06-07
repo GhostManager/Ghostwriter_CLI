@@ -38,6 +38,7 @@ jobs:
           name: Rolling Release (unstable)
           tag_name: rolling
           prerelease: true
+          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
           files: ghostwriter-cli-${{ matrix.build.ostype }}-${{ matrix.build.arch }}.zip
           body: |
             Rolling release of Ghostwriter CLI compiled from source (${{ github.sha }})
