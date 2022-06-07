@@ -1,0 +1,31 @@
+name: Publish Binaries to Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Build
+        uses: wangyoucao577/go-release-action@v1.28
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          project_path: "./cmd/ghostwriter-cli"
+          binary_name: "ghostwriter-cli"
+          ldflags: "-s -w"
+          release_tag: ${{ github.ref_name }}
+          overwrite: true
+          executable_compression: upx --brute
