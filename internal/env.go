@@ -30,16 +30,16 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("django_compress_enabled", true)
 	ghostEnv.SetDefault("django_date_format", "d M Y")
 	ghostEnv.SetDefault("django_host", "django")
-	ghostEnv.SetDefault("django_jwt_secret_key", GenerateRandomPassword(32))
+	ghostEnv.SetDefault("django_jwt_secret_key", GenerateRandomPassword(32, false))
 	ghostEnv.SetDefault("django_mailgun_api_key", "")
 	ghostEnv.SetDefault("django_mailgun_domain", "")
 	ghostEnv.SetDefault("django_port", "8000")
 	ghostEnv.SetDefault("django_qcluster_name", "soar")
-	ghostEnv.SetDefault("django_secret_key", GenerateRandomPassword(32))
+	ghostEnv.SetDefault("django_secret_key", GenerateRandomPassword(32, false))
 	ghostEnv.SetDefault("django_secure_ssl_redirect", false)
 	ghostEnv.SetDefault("django_settings_module", "config.settings.local")
 	ghostEnv.SetDefault("django_superuser_email", "admin@ghostwriter.local")
-	ghostEnv.SetDefault("django_superuser_password", GenerateRandomPassword(32))
+	ghostEnv.SetDefault("django_superuser_password", GenerateRandomPassword(32, true))
 	ghostEnv.SetDefault("django_superuser_username", "admin")
 	ghostEnv.SetDefault("django_web_concurrency", 4)
 
@@ -48,7 +48,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("postgres_port", 5432)
 	ghostEnv.SetDefault("postgres_db", "ghostwriter")
 	ghostEnv.SetDefault("postgres_user", "postgres")
-	ghostEnv.SetDefault("postgres_password", GenerateRandomPassword(32))
+	ghostEnv.SetDefault("postgres_password", GenerateRandomPassword(32, true))
 
 	// Redis configuration
 	ghostEnv.SetDefault("redis_host", "redis")
@@ -59,8 +59,8 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("nginx_port", 443)
 
 	// Hasura configuration
-	ghostEnv.SetDefault("hasura_graphql_action_secret", GenerateRandomPassword(32))
-	ghostEnv.SetDefault("hasura_graphql_admin_secret", GenerateRandomPassword(32))
+	ghostEnv.SetDefault("hasura_graphql_action_secret", GenerateRandomPassword(32, true))
+	ghostEnv.SetDefault("hasura_graphql_admin_secret", GenerateRandomPassword(32, true))
 	ghostEnv.SetDefault("hasura_graphql_dev_mode", true)
 	ghostEnv.SetDefault("hasura_graphql_enable_console", true)
 	ghostEnv.SetDefault("hasura_graphql_enabled_log_types", "startup, http-log, webhook-log, websocket-log, query-log")
