@@ -15,10 +15,8 @@ jobs:
         goos: [linux, darwin, windows]
         goarch: [amd64]
     steps:
-      - name: Checkout
+      - name: Checkout & Build
         uses: actions/checkout@v3
-
-      - name: Build Binaries
       - uses: wangyoucao577/go-release-action@v1.28
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
