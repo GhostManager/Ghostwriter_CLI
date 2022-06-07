@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-var ghostwriterCliVersion = "0.0.3"
-var ghostwriterCliBuildDate = "6 June 2022"
+var ghostwriterCliVersion = "0.1.0"
+var ghostwriterCliBuildDate = "7 June 2022"
 
 func main() {
 	// Display help if no arguments are passed
@@ -30,7 +30,7 @@ func main() {
 	case "install":
 		if len(os.Args) <= 2 {
 			log.Fatalf(
-				"missing subcommand for %s; should be 'dev' or 'production'",
+				"Missing subcommand for %s; should be 'dev' or 'production'",
 				os.Args[1],
 			)
 		}
@@ -51,7 +51,7 @@ func main() {
 	case "build":
 		if len(os.Args) <= 2 {
 			log.Fatalf(
-				"missing subcommand for %s; should be 'dev' or 'production'",
+				"Missing subcommand for %s; should be 'dev' or 'production'",
 				os.Args[1],
 			)
 		}
@@ -72,7 +72,7 @@ func main() {
 	case "restart":
 		if len(os.Args) <= 2 {
 			log.Fatalf(
-				"missing subcommand for %s; should be 'dev' or 'production'",
+				"Missing subcommand for %s; should be 'dev' or 'production'",
 				os.Args[1],
 			)
 		}
@@ -91,7 +91,7 @@ func main() {
 	case "up":
 		if len(os.Args) <= 2 {
 			log.Fatalf(
-				"missing subcommand for %s; should be 'dev' or 'production'",
+				"Missing subcommand for %s; should be 'dev' or 'production'",
 				os.Args[1],
 			)
 		}
@@ -110,7 +110,7 @@ func main() {
 	case "down":
 		if len(os.Args) <= 2 {
 			log.Fatalf(
-				"missing subcommand for %s; should be 'dev' or 'production'",
+				"Missing subcommand for %s; should be 'dev' or 'production'",
 				os.Args[1],
 			)
 		}

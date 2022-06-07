@@ -14,7 +14,7 @@ Golang code for the `ghostwriter-cli` binary in [Ghostwriter](https://github.com
 Execute `./ghostwriter-cli help` for usage information (see below). More information about Ghostwriter and how to manage it with `ghostwriter-cli` can be found on the [Ghostwriter Wiki](https://ghostwriter.wiki/).
 
 ```
-Ghostwriter-CLI ( v0.0.3, 6 June 2022 ):
+Ghostwriter-CLI ( v0.1.0, 7 June 2022 ):
 ********************************************************************
 *** source code: https://github.com/GhostManager/Ghostwriter_CLI ***
 ********************************************************************
