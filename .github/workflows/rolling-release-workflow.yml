@@ -3,9 +3,9 @@ name: Build & Release Binaries
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   releases-matrix:
