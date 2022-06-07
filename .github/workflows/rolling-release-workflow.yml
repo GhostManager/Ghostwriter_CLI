@@ -31,7 +31,6 @@ jobs:
           executable_compression: upx --brute
 
       - name: Update Rolling Release
-        if: "! startsWith(github.event_name, 'pull_request')"
         uses: softprops/action-gh-release@v1
         with:
           name: Rolling Release (unstable)
@@ -39,5 +38,5 @@ jobs:
           prerelease: true
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
           body: |
-            Rolling release of Ghostwriter CLI compiled from source (${{ github.sha }})
-            This is automatically kept up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
+            This is the rolling release of Ghostwriter CLI compiled from source (${{ github.sha }}).
+            The repository updates releases automatically to keep them up-to-date with the `${{ github.ref_name }}` ${{ github.ref_type }}.
