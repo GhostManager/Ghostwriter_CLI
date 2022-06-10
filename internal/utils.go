@@ -153,11 +153,14 @@ func RunCmd(name string, args []string) error {
 }
 
 // Fetch the local Ghostwriter version from the ``VERSION`` file.
-func GetLocalGhostwriterVersion() {
-	if FileExists("./VERSION") {
-		file, err := os.Open("VERSION")
+func GetLocalGhostwriterVersion() (string, error) {
+	var output string
+
+	versionFile := filepath.Join(GetCwdFromExe(), "VERSION")
+	if FileExists(versionFile) {
+		file, err := os.Open(versionFile)
 		if err != nil {
-			log.Fatal(err)
+			return output, err
 		}
 		defer file.Close()
 
@@ -168,42 +171,49 @@ func GetLocalGhostwriterVersion() {
 		}
 
 		if err := scanner.Err(); err != nil {
-			log.Fatal(err)
+			return output, err
 		}
 
-		fmt.Printf("Installed version: Ghostwriter %s ( %s )\n", lines[0], lines[1])
+		output = fmt.Sprintf("Installed version: Ghostwriter %s ( %s )\n", lines[0], lines[1])
 	} else {
-		fmt.Println("[!] Could not read Ghostwriter's './VERSION' file")
+		output = "Could not read Ghostwriter's `VERSION` file"
 	}
+
+	return output, nil
 }
 
 // Fetch the latest Ghostwriter version from GitHub's API.
-func GetRemoteGhostwriterVersion() {
+func GetRemoteGhostwriterVersion() (string, error) {
+	var output string
+
 	baseUrl := "https://api.github.com/repos/GhostManager/Ghostwriter/releases/latest"
 	client := http.Client{Timeout: time.Second * 2}
 	resp, err := client.Get(baseUrl)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
 	body, readErr := ioutil.ReadAll(resp.Body)
 	if readErr != nil {
-		log.Fatal(readErr)
+		return "", readErr
 	}
+
 	var githubJson map[string]interface{}
 	jsonErr := json.Unmarshal(body, &githubJson)
 	if jsonErr != nil {
-		log.Fatal(jsonErr)
+		return "", jsonErr
 	}
 
 	publishedAt := githubJson["published_at"].(string)
 	date, _ := time.Parse(time.RFC3339, publishedAt)
-	fmt.Printf(
+	output = fmt.Sprintf(
 		"Latest stable version: Ghostwriter %s ( %02d %s %d )\n",
 		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
 	)
+
+	return output, nil
 }
 
 // Check if a slice of strings (``slice`` parameter) contains a given

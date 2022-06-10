@@ -161,8 +161,17 @@ func main() {
 
 	// Check for Ghostwriter updates
 	case "update":
-		internal.GetLocalGhostwriterVersion()
-		internal.GetRemoteGhostwriterVersion()
+		localVersion, localErr := internal.GetLocalGhostwriterVersion()
+		if localErr != nil {
+			log.Fatalf("Unable to get remote Ghostwriter version: %s", localErr)
+		}
+
+		remoteVersion, remoteErr := internal.GetRemoteGhostwriterVersion()
+		if remoteErr != nil {
+			log.Fatalf("Unable to get remote Ghostwriter version: %s", remoteErr)
+		}
+		fmt.Println("[+] Local Ghostwriter version: " + localVersion)
+		fmt.Print("[+] Remote Ghostwriter version: " + remoteVersion)
 
 	// Run Ghostwriter's unit tests
 	case "test":
