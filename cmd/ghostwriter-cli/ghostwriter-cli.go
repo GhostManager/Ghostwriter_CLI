@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-var ghostwriterCliVersion = "0.1.0"
-var ghostwriterCliBuildDate = "7 June 2022"
+var ghostwriterCliVersion = "0.1.2"
+var ghostwriterCliBuildDate = "10 June 2022"
 
 func main() {
 	// Display help if no arguments are passed
@@ -121,6 +121,25 @@ func main() {
 		} else if os.Args[2] == "production" {
 			fmt.Println("[+] Stopping production environment")
 			internal.RunDockerComposeDown("production.yml")
+		} else {
+			log.Fatalf("Unknown environment type; should be 'dev' or 'production'")
+		}
+
+	// Stop all Ghostwriter services
+	case "stop":
+		if len(os.Args) <= 2 {
+			log.Fatalf(
+				"Missing subcommand for %s; should be 'dev' or 'production'",
+				os.Args[1],
+			)
+		}
+
+		if os.Args[2] == "dev" {
+			fmt.Println("[+] Stopping development environment")
+			internal.RunDockerComposeStop("local.yml")
+		} else if os.Args[2] == "production" {
+			fmt.Println("[+] Stopping production environment")
+			internal.RunDockerComposeStop("production.yml")
 		} else {
 			log.Fatalf("Unknown environment type; should be 'dev' or 'production'")
 		}
