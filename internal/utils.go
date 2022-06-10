@@ -226,3 +226,21 @@ func Contains(slice []string, target string) bool {
 	}
 	return false
 }
+
+// Silence any output from tests.
+// Place `defer quietTests()()` after test declarations.
+// Ref: https://stackoverflow.com/a/58720235
+func quietTests() func() {
+	null, _ := os.Open(os.DevNull)
+	sout := os.Stdout
+	serr := os.Stderr
+	os.Stdout = null
+	os.Stderr = null
+	log.SetOutput(null)
+	return func() {
+		defer null.Close()
+		os.Stdout = sout
+		os.Stderr = serr
+		log.SetOutput(os.Stderr)
+	}
+}
