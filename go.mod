@@ -5,6 +5,7 @@ go 1.17
 require github.com/spf13/viper v1.10.1
 
 require (
+	github.com/Luzifer/go-dhparam v1.1.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v20.10.15+incompatible // indirect
