@@ -113,7 +113,7 @@ func ParseGhostwriterEnvironmentVariables() {
 	setGhostwriterConfigDefaultValues()
 	ghostEnv.SetConfigName(".env")
 	ghostEnv.SetConfigType("env")
-	ghostEnv.AddConfigPath(".")
+	ghostEnv.AddConfigPath(GetCwdFromExe())
 	ghostEnv.AutomaticEnv()
 	// Check if expected env file exists
 	if !FileExists(filepath.Join(GetCwdFromExe(), ".env")) {
