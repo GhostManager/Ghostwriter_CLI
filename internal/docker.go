@@ -98,7 +98,7 @@ func RunDockerComposeRestart(yaml string) {
 // Execute the ``docker-compose`` commands to bring up the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeUp(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to bring down the containers with %s...\n", yaml)
+	fmt.Printf("[+] Running `docker-compose` to bring up the containers with %s...\n", yaml)
 	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
 		log.Fatalf("Error trying to bring up the containers with %s: %v\n", yaml, upErr)
@@ -112,6 +112,16 @@ func RunDockerComposeDown(yaml string) {
 	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
 	if downErr != nil {
 		log.Fatalf("Error trying to bring down the containers with %s: %v\n", yaml, downErr)
+	}
+}
+
+// Execute the ``docker-compose`` commands to stop all services in the environment with
+// the specified YAML file (``yaml`` parameter).
+func RunDockerComposeStop(yaml string) {
+	fmt.Printf("[+] Running `docker-compose` to stop services with %s...\n", yaml)
+	stopErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
+	if stopErr != nil {
+		log.Fatalf("Error trying to stop services with %s: %v\n", yaml, stopErr)
 	}
 }
 
