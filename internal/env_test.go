@@ -29,6 +29,9 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 	if !ghostEnv.GetBool("django_secure_ssl_redirect") {
 		t.Error("Expected `django_secure_ssl_redirect` to be true, got false")
 	}
+	if ghostEnv.GetBool("hasura_graphql_enable_console") {
+		t.Error("Expected `hasura_graphql_enable_console` to be false, got true")
+	}
 	if ghostEnv.GetBool("hasura_graphql_insecure_skip_tls_verify") {
 		t.Error("Expected `hasura_graphql_insecure_skip_tls_verify` to be false, got true")
 	}
@@ -43,6 +46,9 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 	}
 	if ghostEnv.GetBool("django_secure_ssl_redirect") {
 		t.Error("Expected `django_secure_ssl_redirect` to be false, got true")
+	}
+	if !ghostEnv.GetBool("hasura_graphql_enable_console") {
+		t.Error("Expected `hasura_graphql_enable_console` to be true, got false")
 	}
 	if !ghostEnv.GetBool("hasura_graphql_insecure_skip_tls_verify") {
 		t.Error("Expected `hasura_graphql_insecure_skip_tls_verify` to be true, got false")
