@@ -150,9 +150,13 @@ func main() {
 
 	// Fetch and print logs for the given container
 	case "logs":
-		logs := internal.FetchLogs(os.Args[2])
-		for _, entry := range logs {
-			fmt.Print(entry)
+		if len(os.Args) > 2 {
+			logs := internal.FetchLogs(os.Args[2])
+			for _, entry := range logs {
+				fmt.Print(entry)
+			}
+		} else {
+			log.Fatalf("Missing container name; should be 'all' or 'ghostwriter_{django|nginx|postgres|redis|graphql|queue}'")
 		}
 
 	// Get list of running Ghostwriter containers

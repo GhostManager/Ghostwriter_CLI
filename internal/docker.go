@@ -138,7 +138,8 @@ func FetchLogs(containerName string) []string {
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
-			if container.Labels["name"] == containerName {
+			if container.Labels["name"] == containerName || containerName == "all" {
+				logs = append(logs, fmt.Sprintf("\n*** Logs for `%s` ***\n\n", container.Labels["name"]))
 				reader, err := cli.ContainerLogs(context.Background(), container.ID, types.ContainerLogsOptions{
 					ShowStdout: true,
 					ShowStderr: true,
@@ -158,6 +159,10 @@ func FetchLogs(containerName string) []string {
 					_, err = reader.Read(p)
 				}
 			}
+		}
+
+		if len(logs) == 0 {
+			logs = append(logs, fmt.Sprintf("\n*** No logs found for requested container '%s' ***\n", containerName))
 		}
 	} else {
 		fmt.Println("Failed to find that container")

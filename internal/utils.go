@@ -44,7 +44,7 @@ func DisplayHelp(version string, build string) {
 	fmt.Println("    disallowhost <var hostname/address>")
 	fmt.Println("  logs <container name>")
 	fmt.Println("    Displays logs for the given container")
-	fmt.Println("    Options: ghostwriter_{django|nginx|postgres|redis|graphql|queue}")
+	fmt.Println("    Provide `all` or a container name: ghostwriter_{django|nginx|postgres|redis|graphql|queue}")
 	fmt.Println("  running")
 	fmt.Println("    Print a list of running Ghostwriter services")
 	fmt.Println("  update")
