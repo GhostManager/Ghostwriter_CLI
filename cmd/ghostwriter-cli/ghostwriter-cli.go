@@ -38,7 +38,7 @@ func main() {
 			fmt.Println("[+] Starting development environment installation")
 			internal.SetDevMode()
 			internal.RunDockerComposeInstall("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			internal.SetProductionMode()
 			fmt.Println("[+] Starting production environment installation")
 			internal.GenerateCertificatePackage()
@@ -60,7 +60,7 @@ func main() {
 			fmt.Println("[+] Starting development environment build")
 			internal.SetDevMode()
 			internal.RunDockerComposeUpgrade("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			fmt.Println("[+] Starting production environment build")
 			internal.SetProductionMode()
 			internal.RunDockerComposeUpgrade("production.yml")
@@ -80,7 +80,7 @@ func main() {
 		if os.Args[2] == "dev" {
 			fmt.Println("[+] Restarting development environment")
 			internal.RunDockerComposeRestart("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			fmt.Println("[+] Restarting production environment")
 			internal.RunDockerComposeRestart("local.yml")
 		} else {
@@ -99,7 +99,7 @@ func main() {
 		if os.Args[2] == "dev" {
 			fmt.Println("[+] Bringing up development environment")
 			internal.RunDockerComposeUp("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			fmt.Println("[+] Bringing up production environment")
 			internal.RunDockerComposeUp("production.yml")
 		} else {
@@ -118,7 +118,7 @@ func main() {
 		if os.Args[2] == "dev" {
 			fmt.Println("[+] Stopping development environment")
 			internal.RunDockerComposeDown("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			fmt.Println("[+] Stopping production environment")
 			internal.RunDockerComposeDown("production.yml")
 		} else {
@@ -137,7 +137,7 @@ func main() {
 		if os.Args[2] == "dev" {
 			fmt.Println("[+] Stopping development environment")
 			internal.RunDockerComposeStop("local.yml")
-		} else if os.Args[2] == "production" {
+		} else if os.Args[2] == "production" || os.Args[2] == "prod" {
 			fmt.Println("[+] Stopping production environment")
 			internal.RunDockerComposeStop("production.yml")
 		} else {
