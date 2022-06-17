@@ -14,44 +14,41 @@ Golang code for the `ghostwriter-cli` binary in [Ghostwriter](https://github.com
 Execute `./ghostwriter-cli help` for usage information (see below). More information about Ghostwriter and how to manage it with `ghostwriter-cli` can be found on the [Ghostwriter Wiki](https://ghostwriter.wiki/).
 
 ```
-Ghostwriter-CLI ( v0.1.0, 7 June 2022 ):
-********************************************************************
-*** source code: https://github.com/GhostManager/Ghostwriter_CLI ***
-********************************************************************
-  help
-    Displays this help information
-  install {dev|production}
-    Builds containers and performs first-time setup of Ghostwriter
-  build {dev|production}
-    Builds the containers for the given environment (only necessary for upgrades)
-  restart {dev|production}
-    Restarts all Ghostwriter services in the given environment
-  up {dev|production}
-    Bring up all Ghostwriter services in the given environment
-  down {dev|production}
-    Bring down all Ghostwriter services in the given environment
-  config
-    ** No parameters will dump the entire config **
-    get [varname ...]
-    set <var name> <var value>
-    allowhost <var hostname/address>
-    disallowhost <var hostname/address>
-  logs <container name>
-    Displays logs for the given container
-    Options: ghostwriter_{django|nginx|postgres|redis|graphql|queue}
-  running
-    Print a list of running Ghostwriter services
-  update
-    Displays version information for the local Ghostwriter installation and the latest stable release on GitHub
-  test
-    Runs Ghostwriter's unit tests in the development environment
-    Requires to `ghostwriter_cli install dev` to have been run first
-  version
-    Displays the version information at the top of this message
+Ghostwriter CLI is a command line interface for managing the Ghostwriter
+application and associated containers and services. Commands are grouped by their use.
+
+Usage:
+  ghostwriter-cli [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  config      Display or adjust the configuration
+  containers  Manage Ghostwriter containers with subcommands.
+  help        Help about any command
+  install     Builds containers and performs first-time setup of Ghostwriter.
+  logs        Fetch logs for Ghostwriter services.
+  running     Print a list of running Ghostwriter services.
+  test        Runs Ghostwriter's unit tests in the development environment.
+  update      Displays version information for Ghostwriter.
+  version     Displays Ghostwriter CLI's version information.
+
+Flags:
+      --dev    Target the development environment for "install" and "containers" commands.
+  -h, --help   help for ghostwriter-cli
+
+Use "ghostwriter-cli [command] --help" for more information about a command.
 ```
 
 ## Compilation
 
-The binaries distributed with Ghostwriter and attached to releases are compiled with `go build -ldflags="-s -w" -o ghostwriter-cli ghostwriter-cli.go` and then passed through `upx` with `upx --brute ghostwriter-cli`. This is simply so that the standard ~8.5MB Golang file is compressed down to a ~2.5MB file for easier inclusion with the Ghostwriter repo.
+The binaries distributed with Ghostwriter and attached to releases are compiled with the following command to set version and build date information:
 
-All releases include the MD5 hash of the packed binary so you can verify the downloaded binary matches the release. Compile and pack the code with the above commands (or use the pre-compiled binary from a release or Ghostwriter) and then calculate the hash with `md5sum` for comparison.
+```
+go build -ldflags="-s -w -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=`git describe --tags --abbrev=0`' -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=`date -u '+%d %b %Y'`'" -o ghostwriter-cli main.go
+```
+
+The version for rolling releases is set to `rolling`.
+
+Builds pass through `upx` with `upx --brute ghostwriter-cli`. This is simply so that the standard ~8.5MB Golang file is compressed down to a ~2.5MB file for easier inclusion with the Ghostwriter repo.
+
+All releases include the MD5 hash of the packed binary so you can verify the downloaded binary matches the release. Compile and pack the code with the above commands (or use the pre-compiled binary from a release or Ghostwriter) and then calculate the hash with `md5sum` for comparison. Note that hashes will be different if your command sets different version and build date information.
