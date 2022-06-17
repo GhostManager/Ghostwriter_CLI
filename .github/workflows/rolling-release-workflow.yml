@@ -25,7 +25,7 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: "./cmd/ghostwriter-cli"
           binary_name: "ghostwriter-cli"
-          ldflags: "-s -w"
+          ldflags: "-s -w -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=rolling' -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=`date -u '+%d %b %Y'`'"
           release_tag: rolling
           overwrite: true
           executable_compression: upx --brute
