@@ -16,46 +16,6 @@ import (
 	"time"
 )
 
-// Basic help info to display when no arguments are passed and for ``help`` case.
-func DisplayHelp(version string, build string) {
-	fmt.Printf("Ghostwriter-CLI ( v%s, %s ):\n", version, build)
-	fmt.Println("********************************************************************")
-	fmt.Println("*** source code: https://github.com/GhostManager/Ghostwriter_CLI ***")
-	fmt.Println("********************************************************************")
-	fmt.Println("  help")
-	fmt.Println("    Displays this help information")
-	fmt.Println("  install {dev|production}")
-	fmt.Println("    Builds containers and performs first-time setup of Ghostwriter")
-	fmt.Println("  build {dev|production}")
-	fmt.Println("    Builds the containers for the given environment (only necessary for upgrades)")
-	fmt.Println("  restart {dev|production}")
-	fmt.Println("    Restarts all Ghostwriter services in the given environment")
-	fmt.Println("  up {dev|production}")
-	fmt.Println("    Start all Ghostwriter services in the given environment")
-	fmt.Println("  down {dev|production}")
-	fmt.Println("    Bring down all Ghostwriter services and removes containers in the given environment")
-	fmt.Println("  stop {dev|production}")
-	fmt.Println("    Stops all Ghostwriter services in the given environment")
-	fmt.Println("  config")
-	fmt.Println("    ** No parameters will dump the entire config **")
-	fmt.Println("    get [varname ...]")
-	fmt.Println("    set <var name> <var value>")
-	fmt.Println("    allowhost <var hostname/address>")
-	fmt.Println("    disallowhost <var hostname/address>")
-	fmt.Println("  logs <container name>")
-	fmt.Println("    Displays logs for the given container")
-	fmt.Println("    Provide `all` or a container name: ghostwriter_{django|nginx|postgres|redis|graphql|queue}")
-	fmt.Println("  running")
-	fmt.Println("    Print a list of running Ghostwriter services")
-	fmt.Println("  update")
-	fmt.Println("    Displays version information for the local Ghostwriter installation and the latest stable release on GitHub")
-	fmt.Println("  test")
-	fmt.Println("    Runs Ghostwriter's unit tests in the development environment")
-	fmt.Println("    Requires to `install dev` to have been run first")
-	fmt.Println("  version")
-	fmt.Println("    Displays the version information at the top of this message")
-}
-
 // Get the current working directory based on ``ghostwriter-cli`` location.
 func GetCwdFromExe() string {
 	exe, err := os.Executable()
@@ -174,9 +134,9 @@ func GetLocalGhostwriterVersion() (string, error) {
 			return output, err
 		}
 
-		output = fmt.Sprintf("Installed version: Ghostwriter %s ( %s )\n", lines[0], lines[1])
+		output = fmt.Sprintf("Ghostwriter %s ( %s )\n", lines[0], lines[1])
 	} else {
-		output = "Could not read Ghostwriter's `VERSION` file"
+		output = "Could not read Ghostwriter's `VERSION` file\n"
 	}
 
 	return output, nil
@@ -209,7 +169,7 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	publishedAt := githubJson["published_at"].(string)
 	date, _ := time.Parse(time.RFC3339, publishedAt)
 	output = fmt.Sprintf(
-		"Latest stable version: Ghostwriter %s ( %02d %s %d )\n",
+		"Ghostwriter %s ( %02d %s %d )\n",
 		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
 	)
 

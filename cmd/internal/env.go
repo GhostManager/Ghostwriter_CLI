@@ -13,6 +13,27 @@ import (
 	"strings"
 )
 
+// Custom type for storing configuration values as Key:Val pairs.
+type Configuration struct {
+	Key string
+	Val string
+}
+
+type Configurations []Configuration
+
+func (c Configurations) Len() int {
+	return len(c)
+}
+
+func (c Configurations) Less(i, j int) bool {
+	return c[i].Key < c[j].Key
+}
+
+func (c Configurations) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+// Initialize the environment variables.
 var ghostEnv = viper.New()
 
 // Set sane defaults for a basic Ghostwriter deployment.
@@ -168,69 +189,64 @@ func RemoveAllowedHost(host string) {
 	ghostEnv.Set("django_allowed_hosts", strings.TrimSpace(current))
 }
 
-// Review, get, or set environment variables.
-// Prints contents of the .env if no arguments are provided.
-func Env(args []string) {
-	if len(args) == 0 {
-		fmt.Println("[+] Current configuration and available variables:")
-		c := ghostEnv.AllSettings()
-		keys := make([]string, 0, len(c))
-		for k := range c {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, key := range keys {
-			fmt.Println(strings.ToUpper(key), "=", ghostEnv.Get(key))
-		}
-		return
+// Retrieve all values from the .env configuraiton file.
+func GetConfigAll() Configurations {
+	c := ghostEnv.AllSettings()
+	keys := make([]string, 0, len(c))
+	for k := range c {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var values Configurations
+	for _, key := range keys {
+		val := ghostEnv.Get(key)
+		values = append(values, Configuration{strings.ToUpper(key), val.(string)})
 	}
 
-	switch args[0] {
-	case "get":
-		if len(args) == 1 {
-			log.Fatal("Must specify name of variable to get")
-		}
-		for i := 1; i < len(args[1:])+1; i++ {
-			setting := strings.ToLower(args[i])
-			val := ghostEnv.Get(setting)
-			if val == nil {
-				log.Fatalf("Config variable `%s` not found", setting)
-			} else {
-				fmt.Printf("\n%s: %s\n", strings.ToUpper(setting), val)
-			}
-		}
-	case "set":
-		if len(args) != 3 {
-			log.Fatalf("Must supply config name and config value")
-		}
-		if strings.ToLower(args[2]) == "true" {
-			ghostEnv.Set(args[1], true)
-		} else if strings.ToLower(args[2]) == "false" {
-			ghostEnv.Set(args[1], false)
+	sort.Sort(values)
+
+	return values
+}
+
+// Retrieve the specified values from the .env file.
+func GetConfig(args []string) Configurations {
+	var values Configurations
+	for i := 0; i < len(args[0:]); i++ {
+		setting := strings.ToLower(args[i])
+		val := ghostEnv.Get(setting)
+		if val == nil {
+			log.Fatalf("Config variable `%s` not found", setting)
 		} else {
-			ghostEnv.Set(args[1], args[2])
+			values = append(values, Configuration{setting, val.(string)})
 		}
-		ghostEnv.Get(args[1])
-		WriteGhostwriterEnvironmentVariables()
-		fmt.Printf("[+] Successfully updated configuration in .env\n")
-	case "allowhost":
-		if len(args) != 2 {
-			log.Fatalf("Must supply config name and config value")
-		}
-		new_host := strings.ToLower(args[1])
-		AppendAllowedHost(new_host)
-		WriteGhostwriterEnvironmentVariables()
-		fmt.Printf("[+] Successfully updated configuration in .env\n")
-	case "disallowhost":
-		if len(args) != 2 {
-			log.Fatalf("Must supply config name and config value")
-		}
-		host := strings.ToLower(args[1])
-		RemoveAllowedHost(host)
-		WriteGhostwriterEnvironmentVariables()
-		fmt.Printf("[+] Successfully updated configuration in .env\n")
-
-	default:
-		fmt.Println("[-] Unknown env subcommand:", args[0])
 	}
+
+	sort.Sort(values)
+
+	return values
+}
+
+// Set the value of the specified key in the .env file.
+func SetConfig(key string, value string) {
+	if strings.ToLower(value) == "true" {
+		ghostEnv.Set(key, true)
+	} else if strings.ToLower(value) == "false" {
+		ghostEnv.Set(key, false)
+	} else {
+		ghostEnv.Set(key, value)
+	}
+	WriteGhostwriterEnvironmentVariables()
+}
+
+// Append a host to the allowed hosts list in the .env file.
+func AllowHost(host string) {
+	AppendAllowedHost(host)
+	WriteGhostwriterEnvironmentVariables()
+}
+
+// Remove a host to the allowed hosts list in the .env file.
+func DisallowHost(host string) {
+	RemoveAllowedHost(host)
+	WriteGhostwriterEnvironmentVariables()
 }

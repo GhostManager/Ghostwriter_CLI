@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+// Vars for tracking the list of Ghostwriter images
+// Used for filtering the list of containers returned by the Docker client
 var (
 	prodImages = []string{
 		"ghostwriter_production_django", "ghostwriter_production_nginx",
@@ -24,10 +26,32 @@ var (
 	}
 )
 
+// Custom type for storing container information similar to output from ``docker containers ls``.
+type Container struct {
+	ID     string
+	Image  string
+	Status string
+	Ports  []types.Port
+	Names  []string
+}
+
+type Containers []Container
+
+func (c Containers) Len() int {
+	return len(c)
+}
+
+func (c Containers) Less(i, j int) bool {
+	return c[i].Image < c[j].Image
+}
+
+func (c Containers) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
 // Execute the ``docker-compose`` commands for a first-time installation with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeInstall(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` for first-time installation with %s...\n", yaml)
 	buildErr := RunCmd("docker-compose", []string{"-f", yaml, "build"})
 	if buildErr != nil {
 		log.Fatalf("Error trying to build with %s: %v\n", yaml, buildErr)
@@ -85,11 +109,31 @@ func RunDockerComposeUpgrade(yaml string) {
 	}
 }
 
+// Execute the ``docker-compose`` commands to start the environment with
+// the specified YAML file (``yaml`` parameter).
+func RunDockerComposeStart(yaml string) {
+	fmt.Printf("[+] Running `docker-compose` to restart containers with %s...\n", yaml)
+	startErr := RunCmd("docker-compose", []string{"-f", yaml, "start"})
+	if startErr != nil {
+		log.Fatalf("Error trying to restart the containers with %s: %v\n", yaml, startErr)
+	}
+}
+
+// Execute the ``docker-compose`` commands to stop all services in the environment with
+// the specified YAML file (``yaml`` parameter).
+func RunDockerComposeStop(yaml string) {
+	fmt.Printf("[+] Running `docker-compose` to stop services with %s...\n", yaml)
+	stopErr := RunCmd("docker-compose", []string{"-f", yaml, "stop"})
+	if stopErr != nil {
+		log.Fatalf("Error trying to stop services with %s: %v\n", yaml, stopErr)
+	}
+}
+
 // Execute the ``docker-compose`` commands to restart the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeRestart(yaml string) {
 	fmt.Printf("[+] Running `docker-compose` to restart containers with %s...\n", yaml)
-	startErr := RunCmd("docker-compose", []string{"-f", yaml, "start"})
+	startErr := RunCmd("docker-compose", []string{"-f", yaml, "restart"})
 	if startErr != nil {
 		log.Fatalf("Error trying to restart the containers with %s: %v\n", yaml, startErr)
 	}
@@ -115,18 +159,8 @@ func RunDockerComposeDown(yaml string) {
 	}
 }
 
-// Execute the ``docker-compose`` commands to stop all services in the environment with
-// the specified YAML file (``yaml`` parameter).
-func RunDockerComposeStop(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to stop services with %s...\n", yaml)
-	stopErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
-	if stopErr != nil {
-		log.Fatalf("Error trying to stop services with %s: %v\n", yaml, stopErr)
-	}
-}
-
 // Fetch logs from the the container with the specified ``name`` label (``containerName`` parameter).
-func FetchLogs(containerName string) []string {
+func FetchLogs(containerName string, lines string) []string {
 	var logs []string
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -138,12 +172,12 @@ func FetchLogs(containerName string) []string {
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
-			if container.Labels["name"] == containerName || containerName == "all" {
+			if container.Labels["name"] == containerName || containerName == "all" || container.Labels["name"] == "ghostwriter_"+containerName {
 				logs = append(logs, fmt.Sprintf("\n*** Logs for `%s` ***\n\n", container.Labels["name"]))
 				reader, err := cli.ContainerLogs(context.Background(), container.ID, types.ContainerLogsOptions{
 					ShowStdout: true,
 					ShowStderr: true,
-					Tail:       "500",
+					Tail:       lines,
 				})
 				if err != nil {
 					log.Fatalf("Failed to get container logs: %v", err)
@@ -196,7 +230,20 @@ func isServiceRunning(containerName string) bool {
 // the "Application startup complete" log message.
 func isDjangoStarted() bool {
 	expectedString := "Application startup complete"
-	logs := FetchLogs("ghostwriter_django")
+	logs := FetchLogs("ghostwriter_django", "500")
+	for _, entry := range logs {
+		result := strings.Contains(entry, expectedString)
+		if result {
+			return true
+		}
+	}
+	return false
+}
+
+// Check if PostgreSQL is having trouble starting due to a password mismatch.
+func isPostgresStarted() bool {
+	expectedString := "Password does not match for user"
+	logs := FetchLogs("ghostwriter_postgres", "100")
 	for _, entry := range logs {
 		result := strings.Contains(entry, expectedString)
 		if result {
@@ -218,6 +265,9 @@ func waitForDjango() bool {
 					fmt.Print("\n[+] Django application started\n")
 					return true
 				}
+				if isPostgresStarted() {
+					log.Fatalf("\nPostgreSQL cannot start because of a password mismatch. Please read: https://www.ghostwriter.wiki/getting-help/faq#ghostwriter-cli-reports-an-issue-with-postgresql")
+				}
 				time.Sleep(1 * time.Second)
 				counter++
 			}
@@ -226,8 +276,9 @@ func waitForDjango() bool {
 }
 
 // Determine if the container with the specified ``name`` label (``containerName`` parameter) is running.
-func GetRunning() {
-	fmt.Println("[+] Collecting list of running Ghostwriter containers...")
+func GetRunning() Containers {
+	var running Containers
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Fatalf("Failed to get client connection to Docker: %v", err)
@@ -241,10 +292,14 @@ func GetRunning() {
 	if len(containers) > 0 {
 		for _, container := range containers {
 			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
-				fmt.Printf("* %s\n", container.Image)
+				running = append(running, Container{
+					container.ID, container.Image, container.Status, container.Ports, container.Names,
+				})
 			}
 		}
 	}
+
+	return running
 }
 
 // Run Ghostwriter's unit and integration tests via ``docker-compose``.
@@ -252,19 +307,21 @@ func GetRunning() {
 // will be set for test conditions, so the .env file is temporarily adjusted
 // during the test run.
 func RunGhostwriterTests() {
-	fmt.Println("[+] Running Ghostwriter's unit and integration tests...")
 	// Save the current env values we're about to change
 	currentActionSecret := ghostEnv.Get("HASURA_GRAPHQL_ACTION_SECRET")
 	currentSettignsModule := ghostEnv.Get("DJANGO_SETTINGS_MODULE")
+
 	// Change env values for the test conditions
 	ghostEnv.Set("HASURA_GRAPHQL_ACTION_SECRET", "changeme")
 	ghostEnv.Set("DJANGO_SETTINGS_MODULE", "config.settings.local")
 	WriteGhostwriterEnvironmentVariables()
+
 	// Run the unit tests
 	testErr := RunCmd("docker-compose", []string{"-f", "local.yml", "run", "--rm", "django", "python", "manage.py", "test"})
 	if testErr != nil {
 		log.Fatalf("Error trying to run Ghostwriter's tests: %v\n", testErr)
 	}
+
 	// Reset the changed env values
 	ghostEnv.Set("HASURA_GRAPHQL_ACTION_SECRET", currentActionSecret)
 	ghostEnv.Set("DJANGO_SETTINGS_MODULE", currentSettignsModule)
