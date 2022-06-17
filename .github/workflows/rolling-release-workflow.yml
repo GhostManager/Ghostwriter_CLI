@@ -18,10 +18,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set Values
-        run: |
-        echo "VERSION=rolling" >> $GITHUB_ENV
-        run: |
-        echo "BUILD_DATE=$(date -u '+%d %b %Y')" >> $GITHUB_ENV
+        run: echo "VERSION=rolling" >> $GITHUB_ENV && echo "BUILD_DATE=$(date -u '+%d %b %Y')" >> $GITHUB_ENV
 
       - name: Build
         uses: wangyoucao577/go-release-action@v1.28
