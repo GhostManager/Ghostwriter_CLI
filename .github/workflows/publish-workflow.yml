@@ -23,7 +23,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          project_path: "./cmd/ghostwriter-cli"
+          project_path: "."
           binary_name: "ghostwriter-cli"
           ldflags: "-s -w -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=`git describe --tags --abbrev=0`' -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=`date -u '+%d %b %Y'`'"
           release_tag: ${{ github.ref_name }}
