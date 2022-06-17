@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2022-06-17
+
+### Added
+
+* Added `--lines` flag for the `logs` command to set the number of lines returned (default is 500)
+* Added `--dev` flag to management commands to target the development environment
+
+### Changed
+
+* Refactored code to use Cobra CLI to improve help menus and command organization
+* All commands will now default to targeting the production environment (use the `--dev` flag for development work)
+
 ## [0.1.2] - 2022-06-16
 
 ### Changed
