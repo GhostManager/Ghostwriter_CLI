@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Set Values
+        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV && echo "BUILD_DATE=$(date -u '+%d %b %Y')" >> $GITHUB_ENV
+
       - name: Build
         uses: wangyoucao577/go-release-action@v1.28
         with:
@@ -25,7 +28,7 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: "."
           binary_name: "ghostwriter-cli"
-          ldflags: "-s -w -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=`git describe --tags --abbrev=0`' -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=`date -u '+%d %b %Y'`'"
+          ldflags: -s -w -X "github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=${{ env.VERSION }}" -X "github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate='${{ env.BUILD_DATE }}'"
           release_tag: ${{ github.ref_name }}
           overwrite: true
           executable_compression: upx --brute
