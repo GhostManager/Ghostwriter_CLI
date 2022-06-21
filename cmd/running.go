@@ -38,7 +38,7 @@ func displayRunning(cmd *cobra.Command, args []string) {
 	fmt.Printf("[+] Found %d running Ghostwriter containers\n", len(containers))
 
 	if len(containers) > 0 {
-		fmt.Fprintf(writer, "\n %s\t%s\t%s\t%s\t%s", "Container ID", "Image", "Status", "Ports", "Names")
+		fmt.Fprintf(writer, "\n %s\t%s\t%s\t%s\t%s", "Name", "Container ID", "Image", "Status", "Ports")
 		fmt.Fprintf(writer, "\n %s\t%s\t%s\t%s\t%s", "––––––––––––", "––––––––––––", "––––––––––––", "––––––––––––", "––––––––––––")
 		for _, container := range containers {
 			var ports []string
@@ -58,7 +58,7 @@ func displayRunning(cmd *cobra.Command, args []string) {
 				}
 				ports = append(ports, portString)
 			}
-			fmt.Fprintf(writer, "\n %s\t%s\t%s\t%v\t%s", container.ID, container.Image, container.Status, strings.Join(ports, ", "), container.Name)
+			fmt.Fprintf(writer, "\n %s\t%s\t%s\t%v\t%s", container.Name, container.ID, container.Image, container.Status, strings.Join(ports, ", "))
 		}
 		fmt.Fprintln(writer, "")
 	}
