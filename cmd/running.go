@@ -58,7 +58,7 @@ func displayRunning(cmd *cobra.Command, args []string) {
 				}
 				ports = append(ports, portString)
 			}
-			fmt.Fprintf(writer, "\n %s\t%s\t%s\t%v\t%s", container.ID, container.Image, container.Status, strings.Join(ports, ", "), strings.Join(container.Names, ", "))
+			fmt.Fprintf(writer, "\n %s\t%s\t%s\t%v\t%s", container.ID, container.Image, container.Status, strings.Join(ports, ", "), container.Name)
 		}
 		fmt.Fprintln(writer, "")
 	}
