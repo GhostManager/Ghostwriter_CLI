@@ -12,7 +12,7 @@ import (
 // runningCmd represents the running command
 var runningCmd = &cobra.Command{
 	Use:   "running",
-	Short: "Print a list of running Ghostwriter services.",
+	Short: "Print a list of running Ghostwriter services",
 	Long: `Print a list of running Ghostwriter services.
 
 If containers are found, the results will include information similar

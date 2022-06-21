@@ -9,7 +9,7 @@ import (
 // containersBuildCmd represents the build command
 var containersBuildCmd = &cobra.Command{
 	Use:   "build",
-	Short: "Builds the Ghostwriter containers (only needed for updates).",
+	Short: "Builds the Ghostwriter containers (only needed for updates)",
 	Long: `Builds the Ghostwriter containers. Production containers are built by
 default. Use the "--dev" flag to build a development environment.
 

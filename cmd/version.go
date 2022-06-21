@@ -9,7 +9,7 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Displays Ghostwriter CLI's version information.",
+	Short: "Displays Ghostwriter CLI's version information",
 	Long:  "Displays Ghostwriter CLI's version information.",
 	Run:   displayVersion,
 }

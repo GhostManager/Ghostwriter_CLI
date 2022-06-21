@@ -13,7 +13,7 @@ import (
 // containersStartCmd represents the start command
 var containersStartCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start all stopped Ghostwriter services.",
+	Short: "Start all stopped Ghostwriter services",
 	Long: `Start all stopped Ghostwriter services. This performs the equivilant
 of running the "docker-compose start" command.
 

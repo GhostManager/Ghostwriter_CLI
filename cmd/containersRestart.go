@@ -9,7 +9,7 @@ import (
 // containersRestartCmd represents the restart command
 var containersRestartCmd = &cobra.Command{
 	Use:   "restart",
-	Short: "Restart all stopped and running Ghostwriter services.",
+	Short: "Restart all stopped and running Ghostwriter services",
 	Long: `Restart all stopped and running Ghostwriter services. This performs
 the equivilant of running the "docker-compose restart" command.
 

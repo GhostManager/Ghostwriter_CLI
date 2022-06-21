@@ -9,7 +9,7 @@ import (
 // containersUpCmd represents the up command
 var containersUpCmd = &cobra.Command{
 	Use:   "up",
-	Short: "Build, (re)create, and start all Ghostwriter containers.",
+	Short: "Build, (re)create, and start all Ghostwriter containers",
 	Long: `Build, (re)create, and start all Ghostwriter containers. This
 performs the equivilant of running the "docker-compose up" command.
 

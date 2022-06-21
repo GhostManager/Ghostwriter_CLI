@@ -9,7 +9,7 @@ import (
 // containersDownCmd represents the down command
 var containersDownCmd = &cobra.Command{
 	Use:   "down",
-	Short: "Bring down all Ghostwriter services and remove the containers.",
+	Short: "Bring down all Ghostwriter services and remove the containers",
 	Long: `Bring down all Ghostwriter services and remove the containers. This
 performs the equivilant of running the "docker-compose down" command.
 

@@ -9,7 +9,7 @@ import (
 // containersStopCmd represents the stop command
 var containersStopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "Stop all Ghostwriter services without removing the containers.",
+	Short: "Stop all Ghostwriter services without removing the containers",
 	Long: `Stop all Ghostwriter services without removing the containers. This
 performs the equivilant of running the "docker-compose stop" command.
 

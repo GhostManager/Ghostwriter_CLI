@@ -11,7 +11,7 @@ import (
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Displays version information for Ghostwriter.",
+	Short: "Displays version information for Ghostwriter",
 	Long: `Displays version information for Ghostwriter. The local version
 information comes from the local "VERSION" file. The latest release
 information is pulled from GitHub's API.`,

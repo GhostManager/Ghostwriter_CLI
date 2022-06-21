@@ -9,7 +9,7 @@ import (
 // installCmd represents the install command
 var installCmd = &cobra.Command{
 	Use:   "install",
-	Short: "Builds containers and performs first-time setup of Ghostwriter.",
+	Short: "Builds containers and performs first-time setup of Ghostwriter",
 	Long: `Builds containers and performs first-time setup of Ghostwriter. A production
 environment is installed by default. Use the "--dev" flag to install a development environment.
 

@@ -9,7 +9,7 @@ import (
 // logsCmd represents the logs command
 var logsCmd = &cobra.Command{
 	Use:   "logs",
-	Short: "Fetch logs for Ghostwriter services.",
+	Short: "Fetch logs for Ghostwriter services",
 	Long: `Fetch logs for Ghostwriter services. Provide "all" or a container name.
 
 Valid names are:

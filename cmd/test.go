@@ -9,7 +9,7 @@ import (
 // testCmd represents the test command
 var testCmd = &cobra.Command{
 	Use:   "test",
-	Short: "Runs Ghostwriter's unit tests in the development environment.",
+	Short: "Runs Ghostwriter's unit tests in the development environment",
 	Long: `Runs Ghostwriter's unit tests in the development environment.
 
 Requires to "install --dev" to have been run first.`,
