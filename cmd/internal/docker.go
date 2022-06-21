@@ -205,7 +205,9 @@ func FetchLogs(containerName string, lines string) []string {
 }
 
 // Determine if the container with the specified ``name`` label (``containerName`` parameter) is running.
-func isServiceRunning(containerName string) bool {
+func GetRunning() Containers {
+	var running Containers
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Fatalf("Failed to get client connection to Docker: %v", err)
@@ -218,9 +220,23 @@ func isServiceRunning(containerName string) bool {
 	}
 	if len(containers) > 0 {
 		for _, container := range containers {
-			if container.Labels["name"] == strings.ToLower(containerName) {
-				return true
+			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
+				running = append(running, Container{
+					container.ID, container.Image, container.Status, container.Ports, container.Labels["name"],
+				})
 			}
+		}
+	}
+
+	return running
+}
+
+// Determine if the container with the specified ``name`` label (``containerName`` parameter) is running.
+func isServiceRunning(containerName string) bool {
+	containers := GetRunning()
+	for _, container := range containers {
+		if container.Name == strings.ToLower(containerName) {
+			return true
 		}
 	}
 	return false
@@ -273,33 +289,6 @@ func waitForDjango() bool {
 			}
 		}
 	}
-}
-
-// Determine if the container with the specified ``name`` label (``containerName`` parameter) is running.
-func GetRunning() Containers {
-	var running Containers
-
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Fatalf("Failed to get client connection to Docker: %v", err)
-	}
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
-		All: true,
-	})
-	if err != nil {
-		log.Fatalf("Failed to get container list from Docker: %v", err)
-	}
-	if len(containers) > 0 {
-		for _, container := range containers {
-			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
-				running = append(running, Container{
-					container.ID, container.Image, container.Status, container.Ports, container.Names,
-				})
-			}
-		}
-	}
-
-	return running
 }
 
 // Run Ghostwriter's unit and integration tests via ``docker-compose``.
