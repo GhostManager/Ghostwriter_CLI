@@ -32,7 +32,7 @@ type Container struct {
 	Image  string
 	Status string
 	Ports  []types.Port
-	Names  []string
+	Name   string
 }
 
 type Containers []Container
