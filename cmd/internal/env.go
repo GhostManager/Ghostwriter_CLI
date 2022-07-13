@@ -118,7 +118,7 @@ func WriteGhostwriterEnvironmentVariables() {
 		if len(ghostEnv.GetString(key)) == 0 {
 			_, err = f.WriteString(fmt.Sprintf("%s=\n", strings.ToUpper(key)))
 		} else {
-			_, err = f.WriteString(fmt.Sprintf("%s=\"%s\"\n", strings.ToUpper(key), ghostEnv.GetString(key)))
+			_, err = f.WriteString(fmt.Sprintf("%s='%s'\n", strings.ToUpper(key), ghostEnv.GetString(key)))
 		}
 
 		if err != nil {
