@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
 )
@@ -18,18 +19,10 @@ func TestGenerateCertificatePackage(t *testing.T) {
 	crt_path := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
 
 	// Test if the `ssl` folder exists
-	if !DirExists(ssl_dir) {
-		t.Error("Could not find the `ssl` directory")
-	}
+	assert.True(t, DirExists(ssl_dir), "Expected `ssl` folder to exist")
 
 	// Test if all certificate package files exist
-	if !FileExists(dh_path) {
-		t.Error("Failed to find the generated `dhparam.pem` file")
-	}
-	if !FileExists(key_path) {
-		t.Error("Failed to find the generated `ghostwriter.key` file")
-	}
-	if !FileExists(crt_path) {
-		t.Error("Failed to find the generated `ghostwriter.crt` file")
-	}
+	assert.True(t, FileExists(dh_path), "Expected `dhparam.pem` file to exist")
+	assert.True(t, FileExists(key_path), "Expected `ghostwriter.key` file to exist")
+	assert.True(t, FileExists(crt_path), "Expected `ghostwriter.crt` file to exist")
 }
