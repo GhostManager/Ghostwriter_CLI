@@ -175,19 +175,42 @@ func SetDevMode() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Update the environment variables to allow a new hostname.
-func AppendAllowedHost(host string) {
-	current := ghostEnv.GetString("django_allowed_hosts")
-	updated_string := fmt.Sprintf("%s %s", current, host)
-	ghostEnv.Set("django_allowed_hosts", updated_string)
+// Convert the environment variable (``env``) to a slice of strings.
+func splitVariable(env string) []string {
+	return strings.Split(ghostEnv.GetString(env), " ")
 }
 
-// Update the environment variables to disallow a hostname.
-func RemoveAllowedHost(host string) {
-	current := ghostEnv.GetString("django_allowed_hosts")
-	current = strings.Replace(current, host, "", 1)
-	current = strings.Replace(current, "  ", " ", 1)
-	ghostEnv.Set("django_allowed_hosts", strings.TrimSpace(current))
+// Remove one or more matches for ``item`` from a ``slice`` of strings.
+func removeItem(slice []string, item string) []string {
+	counter := 0
+	// We loop through the entire list in case an exact match appears more than once
+	for i, v := range slice {
+		if strings.TrimSpace(v) != item {
+			slice[counter] = slice[i]
+			counter++
+		}
+	}
+	slice = slice[:counter]
+	return slice
+}
+
+// Append a ``host`` to the given environment variable (``env``).
+func appendHost(env string, host string) {
+	s := splitVariable(env)
+	// Append the new host only if it's not already in the list
+	if !(Contains(s, host)) {
+		s = append(s, host)
+		ghostEnv.Set(env, strings.TrimSpace(strings.Join(s, " ")))
+	} else {
+		log.Printf("Host %s is already in the list", host)
+	}
+}
+
+// Remove a ``host`` from the given environment variable (``env``).
+func removeHost(env string, host string) {
+	s := splitVariable(env)
+	s = removeItem(s, host)
+	ghostEnv.Set(env, strings.TrimSpace(strings.Join(s, " ")))
 }
 
 // Retrieve all values from the .env configuraiton file.
@@ -201,8 +224,8 @@ func GetConfigAll() Configurations {
 
 	var values Configurations
 	for _, key := range keys {
-		val := ghostEnv.Get(key)
-		values = append(values, Configuration{strings.ToUpper(key), val.(string)})
+		val := ghostEnv.GetString(key)
+		values = append(values, Configuration{strings.ToUpper(key), val})
 	}
 
 	sort.Sort(values)
@@ -215,11 +238,11 @@ func GetConfig(args []string) Configurations {
 	var values Configurations
 	for i := 0; i < len(args[0:]); i++ {
 		setting := strings.ToLower(args[i])
-		val := ghostEnv.Get(setting)
-		if val == nil {
+		val := ghostEnv.GetString(setting)
+		if val == "" {
 			log.Fatalf("Config variable `%s` not found", setting)
 		} else {
-			values = append(values, Configuration{setting, val.(string)})
+			values = append(values, Configuration{setting, val})
 		}
 	}
 
@@ -242,12 +265,24 @@ func SetConfig(key string, value string) {
 
 // Append a host to the allowed hosts list in the .env file.
 func AllowHost(host string) {
-	AppendAllowedHost(host)
+	appendHost("django_allowed_hosts", host)
 	WriteGhostwriterEnvironmentVariables()
 }
 
 // Remove a host to the allowed hosts list in the .env file.
 func DisallowHost(host string) {
-	RemoveAllowedHost(host)
+	removeHost("django_allowed_hosts", host)
+	WriteGhostwriterEnvironmentVariables()
+}
+
+// Append an origin to the trusted origins list in the .env file.
+func TrustOrigin(host string) {
+	appendHost("django_csrf_trusted_origins", host)
+	WriteGhostwriterEnvironmentVariables()
+}
+
+// Remove an origin to the trusted origins list in the .env file.
+func DistrustOrigin(host string) {
+	removeHost("django_csrf_trusted_origins", host)
 	WriteGhostwriterEnvironmentVariables()
 }
