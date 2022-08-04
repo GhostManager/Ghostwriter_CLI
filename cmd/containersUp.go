@@ -25,9 +25,11 @@ func init() {
 func containersUp(cmd *cobra.Command, args []string) {
 	if dev {
 		fmt.Println("[+] Bringing up the development environment")
+		docker.SetDevMode()
 		docker.RunDockerComposeUp("local.yml")
 	} else {
 		fmt.Println("[+] Bringing up the production environment")
+		docker.SetProductionMode()
 		docker.RunDockerComposeUp("production.yml")
 	}
 }
