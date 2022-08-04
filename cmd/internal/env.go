@@ -159,8 +159,6 @@ func ParseGhostwriterEnvironmentVariables() {
 func SetProductionMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", false)
 	ghostEnv.Set("django_secure_ssl_redirect", true)
-	ghostEnv.Set("hasura_graphql_enable_console", false)
-	ghostEnv.Set("hasura_graphql_insecure_skip_tls_verify", false)
 	ghostEnv.Set("django_settings_module", "config.settings.production")
 	WriteGhostwriterEnvironmentVariables()
 }
@@ -169,8 +167,6 @@ func SetProductionMode() {
 func SetDevMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", true)
 	ghostEnv.Set("django_secure_ssl_redirect", false)
-	ghostEnv.Set("hasura_graphql_enable_console", true)
-	ghostEnv.Set("hasura_graphql_insecure_skip_tls_verify", true)
 	ghostEnv.Set("django_settings_module", "config.settings.local")
 	WriteGhostwriterEnvironmentVariables()
 }
