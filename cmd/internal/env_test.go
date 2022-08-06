@@ -22,16 +22,12 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 	SetProductionMode()
 	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_dev_mode"), false, "Production value of `hasura_graphql_dev_mode` should be false")
 	assert.Equal(t, ghostEnv.GetBool("django_secure_ssl_redirect"), true, "Production value of `django_secure_ssl_redirect` should be true")
-	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_enable_console"), false, "Production value of `hasura_graphql_enable_console` should be false")
-	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_insecure_skip_tls_verify"), false, "Production value of `hasura_graphql_insecure_skip_tls_verify` should be false")
 	assert.Equal(t, ghostEnv.GetString("django_settings_module"), "config.settings.production", "Production value of `django_settings_module` should be `config.settings.production`")
 
 	// Test modifying the .env file for dev mode
 	SetDevMode()
 	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_dev_mode"), true, "Development value of `hasura_graphql_dev_mode` should be true")
 	assert.Equal(t, ghostEnv.GetBool("django_secure_ssl_redirect"), false, "Development value of `django_secure_ssl_redirect` should be false")
-	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_enable_console"), true, "Development value of `hasura_graphql_enable_console` should be true")
-	assert.Equal(t, ghostEnv.GetBool("hasura_graphql_insecure_skip_tls_verify"), true, "Development value of `hasura_graphql_insecure_skip_tls_verify` should be true")
 	assert.Equal(t, ghostEnv.GetString("django_settings_module"), "config.settings.local", "Development value of `django_settings_module` should be `config.settings.local`")
 
 	// Test ``GetConfig()``
