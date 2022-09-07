@@ -28,6 +28,6 @@ func containersRestart(cmd *cobra.Command, args []string) {
 		docker.RunDockerComposeRestart("local.yml")
 	} else {
 		fmt.Println("[+] Restarting the production environment")
-		docker.RunDockerComposeRestart("local.yml")
+		docker.RunDockerComposeRestart("production.yml")
 	}
 }
