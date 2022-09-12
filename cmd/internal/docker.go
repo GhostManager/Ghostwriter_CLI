@@ -298,7 +298,7 @@ func waitForDjango() bool {
 func RunGhostwriterTests() {
 	// Save the current env values we're about to change
 	currentActionSecret := ghostEnv.Get("HASURA_GRAPHQL_ACTION_SECRET")
-	currentSettignsModule := ghostEnv.Get("DJANGO_SETTINGS_MODULE")
+	currentSettingsModule := ghostEnv.Get("DJANGO_SETTINGS_MODULE")
 
 	// Change env values for the test conditions
 	ghostEnv.Set("HASURA_GRAPHQL_ACTION_SECRET", "changeme")
@@ -313,6 +313,6 @@ func RunGhostwriterTests() {
 
 	// Reset the changed env values
 	ghostEnv.Set("HASURA_GRAPHQL_ACTION_SECRET", currentActionSecret)
-	ghostEnv.Set("DJANGO_SETTINGS_MODULE", currentSettignsModule)
+	ghostEnv.Set("DJANGO_SETTINGS_MODULE", currentSettingsModule)
 	WriteGhostwriterEnvironmentVariables()
 }

@@ -76,7 +76,7 @@ func checkCerts(certPath string, keyPath string) error {
 	return nil
 }
 
-// Generate the TLS certificates and Diffie-Helamn parameters file using Go.
+// Generate the TLS certificates and Diffie-Helman parameters file using Go.
 func generateCertificates() error {
 	certPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
 	keyPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
@@ -137,12 +137,12 @@ func generateCertificates() error {
 	}
 	pem.Encode(keyOut, &pem.Block{Type: "EC PRIVATE KEY", Bytes: marshalKey})
 	keyOut.Close()
-	fmt.Printf("[+] Successfully generated new TLS/SSL certificatess\n")
+	fmt.Printf("[+] Successfully generated new TLS/SSL certificates\n")
 
 	return nil
 }
 
-// Generate TLS certificates and Diffie-Helamn parameters file using Go.
+// Generate TLS certificates and Diffie-Helman parameters file using Go.
 func GenerateCertificatePackage() error {
 	// Ensure the ``ssl`` directory exists to receive the keys
 	ssl_path := filepath.Join(GetCwdFromExe(), "ssl")

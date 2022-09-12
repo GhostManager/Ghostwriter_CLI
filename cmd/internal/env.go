@@ -94,7 +94,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("hasura_graphql_migrations_dir", "/migrations")
 	ghostEnv.SetDefault("hasura_graphql_server_port", 8080)
 
-	// Set some elpful aliases for common settings
+	// Set some helpful aliases for common settings
 	ghostEnv.RegisterAlias("date_format", "django_date_format")
 	ghostEnv.RegisterAlias("admin_password", "django_superuser_password")
 	ghostEnv.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
@@ -209,7 +209,7 @@ func removeHost(env string, host string) {
 	ghostEnv.Set(env, strings.TrimSpace(strings.Join(s, " ")))
 }
 
-// Retrieve all values from the .env configuraiton file.
+// Retrieve all values from the .env configuration file.
 func GetConfigAll() Configurations {
 	c := ghostEnv.AllSettings()
 	keys := make([]string, 0, len(c))
