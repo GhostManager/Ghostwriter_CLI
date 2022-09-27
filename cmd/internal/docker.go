@@ -20,7 +20,7 @@ var (
 		"ghostwriter_production_graphql", "ghostwriter_production_queue",
 	}
 	devImages = []string{
-		"ghostwriter_local_django", "ghostwriter_local_redis,",
+		"ghostwriter_local_django", "ghostwriter_local_redis",
 		"ghostwriter_local_postgres", "ghostwriter_local_graphql",
 		"ghostwriter_local_queue",
 	}
