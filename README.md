@@ -13,7 +13,7 @@ Golang code for the `ghostwriter-cli` binary in [Ghostwriter](https://github.com
 
 Execute `./ghostwriter-cli help` for usage information (see below). More information about Ghostwriter and how to manage it with `ghostwriter-cli` can be found on the [Ghostwriter Wiki](https://ghostwriter.wiki/).
 
-```
+```plaintext
 Ghostwriter CLI is a command line interface for managing the Ghostwriter
 application and associated containers and services. Commands are grouped by their use.
 
@@ -43,7 +43,7 @@ Use "ghostwriter-cli [command] --help" for more information about a command.
 
 The binaries distributed with Ghostwriter and attached to releases are compiled with the following command to set version and build date information:
 
-```
+```bash
 go build -ldflags="-s -w -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=`git describe --tags --abbrev=0`' -X 'github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=`date -u '+%d %b %Y'`'" -o ghostwriter-cli main.go
 ```
 
