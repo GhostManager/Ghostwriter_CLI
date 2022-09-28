@@ -94,6 +94,14 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("hasura_graphql_migrations_dir", "/migrations")
 	ghostEnv.SetDefault("hasura_graphql_server_port", 8080)
 
+	// Docker & Django health check configuration
+	ghostEnv.SetDefault("healthcheck_disk_usage_max", 3)
+	ghostEnv.SetDefault("healthcheck_interval", "300s")
+	ghostEnv.SetDefault("healthcheck_mem_min", 100)
+	ghostEnv.SetDefault("healthcheck_retries", 3)
+	ghostEnv.SetDefault("healthcheck_start_period", "60s")
+	ghostEnv.SetDefault("healthcheck_timeout", "30s")
+
 	// Set some helpful aliases for common settings
 	ghostEnv.RegisterAlias("date_format", "django_date_format")
 	ghostEnv.RegisterAlias("admin_password", "django_superuser_password")
