@@ -99,7 +99,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("healthcheck_interval", "300s")
 	ghostEnv.SetDefault("healthcheck_mem_min", 100)
 	ghostEnv.SetDefault("healthcheck_retries", 3)
-	ghostEnv.SetDefault("healthcheck_start_period", "60s")
+	ghostEnv.SetDefault("healthcheck_start", "60s")
 	ghostEnv.SetDefault("healthcheck_timeout", "30s")
 
 	// Set some helpful aliases for common settings
