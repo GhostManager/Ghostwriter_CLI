@@ -93,7 +93,7 @@ func RunDockerComposeInstall(yaml string) {
 
 // Execute the ``docker-compose`` commands for re-building or upgrading an
 // installation with the specified YAML file (``yaml`` parameter).
-func RunDockerComposeUpgrade(yaml string) {
+func RunDockerComposeUpgrade(yaml string, skipseed bool) {
 	fmt.Printf("[+] Running `docker-compose` commands to build containers with %s...\n", yaml)
 	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
 	if downErr != nil {
@@ -107,6 +107,22 @@ func RunDockerComposeUpgrade(yaml string) {
 	if upErr != nil {
 		log.Fatalf("Error trying to bring up environment with %s: %v\n", yaml, upErr)
 	}
+	if !skipseed {
+		// Must wait for Django to complete any potential db migrations before re-seeding the database
+		for {
+			if waitForDjango() {
+				fmt.Println("[+] Re-seeding database in case initial values were added or adjusted...")
+				seedErr := RunCmd("docker-compose", []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
+				if seedErr != nil {
+					log.Fatalf("Error trying to seed the database: %v\n", seedErr)
+				}
+				break
+			}
+		}
+	} else {
+		fmt.Println("[+] The `--skip-seed` flag was set, so skipped database seeding...")
+	}
+	fmt.Println("[+] All containers have been built!")
 }
 
 // Execute the ``docker-compose`` commands to start the environment with
