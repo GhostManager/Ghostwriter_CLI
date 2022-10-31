@@ -20,19 +20,27 @@ Running this command is only necessary when upgrading an existing Ghostwriter in
 	Run: buildContainers,
 }
 
+var skipseed bool
+
 func init() {
 	containersCmd.AddCommand(containersBuildCmd)
+	containersBuildCmd.Flags().BoolVar(
+		&skipseed,
+		"skip-seed",
+		false,
+		`Skip (re-)seeding the database. This is useful when upgrading an existing and you know there are no new or adjusted values.`,
+	)
 }
 
 func buildContainers(cmd *cobra.Command, args []string) {
 	if dev {
 		fmt.Println("[+] Starting development environment build")
 		docker.SetDevMode()
-		docker.RunDockerComposeUpgrade("local.yml")
+		docker.RunDockerComposeUpgrade("local.yml", skipseed)
 	} else {
 		fmt.Println("[+] Starting production environment build")
 		docker.SetProductionMode()
-		docker.RunDockerComposeUpgrade("production.yml")
+		docker.RunDockerComposeUpgrade("production.yml", skipseed)
 	}
 
 }
