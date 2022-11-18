@@ -14,18 +14,18 @@ func TestGetCwdFromExe(t *testing.T) {
 }
 
 func TestCheckPath(t *testing.T) {
-	assert.True(t, CheckPath("docker-compose"), "Expected `CheckPath()` to find `docker-compose` in `$PATH`")
+	assert.True(t, CheckPath("docker"), "Expected `CheckPath()` to find `docker` in `$PATH`")
 }
 
 func TestRunBasicCmd(t *testing.T) {
 	defer quietTests()()
-	_, err := RunBasicCmd("docker-compose", []string{"--version"})
+	_, err := RunBasicCmd(dockerCmd, []string{"--version"})
 	assert.Equal(t, nil, err, "Expected `RunBasicCmd()` to return no error")
 }
 
 func TestRunCmd(t *testing.T) {
 	defer quietTests()()
-	err := RunCmd("docker-compose", []string{"--version"})
+	err := RunCmd(dockerCmd, []string{"--version"})
 	assert.Equal(t, nil, err, "Expected `RunCmd()` to return no error")
 }
 
@@ -35,7 +35,6 @@ func TestContains(t *testing.T) {
 }
 
 func TestGetLocalGhostwriterVersion(t *testing.T) {
-
 	// Mock the Ghostwriter VERSION file
 	versionFile := filepath.Join(GetCwdFromExe(), "VERSION")
 	f, err := os.Create(versionFile)
