@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -24,6 +25,8 @@ var (
 		"ghostwriter_local_postgres", "ghostwriter_local_graphql",
 		"ghostwriter_local_queue",
 	}
+	// Default root command for Docker commands
+	dockerCmd = "docker"
 )
 
 // Custom type for storing container information similar to output from ``docker containers ls``.
@@ -49,14 +52,47 @@ func (c Containers) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-// Execute the ``docker-compose`` commands for a first-time installation with
+// Determine if the host has the ``docker compose`` plugin or the ``docker compose``
+// script installed and set the global `dockerCmd` variable.
+func EvaluateDockerComposeStatus() error {
+	fmt.Println("[+] Checking status of Docker and the Compose plugin...")
+	// Check for ``docker`` first because it's required for everything to come
+	dockerExists := CheckPath("docker")
+	if !dockerExists {
+		log.Fatalln("Docker is not installed on this system, so please install Docker and try again")
+	}
+
+	// Check for the ``compose`` plugin as our first choice
+	_, composeErr := RunBasicCmd("docker", []string{"compose", "version"})
+	if composeErr != nil {
+		fmt.Println("[+] The `compose` is not installed, so we'll try the deprecated `docker-compose` script")
+		composeScriptExists := CheckPath("docker-compose")
+		if composeScriptExists {
+			fmt.Println("[+] The `docker-compose` script is installed, so we'll use that instead")
+			dockerCmd = "docker-compose"
+		} else {
+			fmt.Println("[+] The `docker-compose` script is also not installed or in the PATH")
+			log.Fatalln("Docker Compose is not installed, so please install it and try again: https://docs.docker.com/compose/install/")
+		}
+	}
+
+	// Bail out if we're not in the same directory as the YAML files
+	// Otherwise, we'll get a confusing error message from the `compose` plugin
+	if !FileExists(filepath.Join(GetCwdFromExe(), "local.yml")) || !FileExists(filepath.Join(GetCwdFromExe(), "production.yml")) {
+		log.Fatalln("Ghostwriter CLI must be run in the same directory as the `local.yml` and `production.yml` files")
+	}
+
+	return nil
+}
+
+// Execute the ``docker compose`` commands for a first-time installation with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeInstall(yaml string) {
-	buildErr := RunCmd("docker-compose", []string{"-f", yaml, "build"})
+	buildErr := RunCmd(dockerCmd, []string{"-f", yaml, "build"})
 	if buildErr != nil {
 		log.Fatalf("Error trying to build with %s: %v\n", yaml, buildErr)
 	}
-	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
+	upErr := RunCmd(dockerCmd, []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
 		log.Fatalf("Error trying to bring up environment with %s: %v\n", yaml, upErr)
 	}
@@ -64,13 +100,13 @@ func RunDockerComposeInstall(yaml string) {
 	for {
 		if waitForDjango() {
 			fmt.Println("[+] Proceeding with Django database setup...")
-			seedErr := RunCmd("docker-compose", []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
+			seedErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
 			if seedErr != nil {
 				log.Fatalf("Error trying to seed the database: %v\n", seedErr)
 			}
 			fmt.Println("[+] Proceeding with Django superuser creation...")
 			userErr := RunCmd(
-				"docker-compose", []string{"-f", yaml, "run", "--rm", "django", "python",
+				dockerCmd, []string{"-f", yaml, "run", "--rm", "django", "python",
 					"manage.py", "createsuperuser", "--noinput"},
 			)
 			// This may fail if the user has already created a superuser, so we don't exit
@@ -82,7 +118,7 @@ func RunDockerComposeInstall(yaml string) {
 		}
 	}
 	// Restart Hasura to ensure metadata matches post-migrations and seeding
-	restartErr := RunCmd("docker-compose", []string{"-f", yaml, "restart", "graphql_engine"})
+	restartErr := RunCmd(dockerCmd, []string{"-f", yaml, "restart", "graphql_engine"})
 	if restartErr != nil {
 		fmt.Printf("[-] Error trying to restart the `graphql_engine` service: %v\n", restartErr)
 	}
@@ -91,19 +127,19 @@ func RunDockerComposeInstall(yaml string) {
 	fmt.Println("[+] You can get your admin password by running: ghostwriter-cli config get admin_password")
 }
 
-// Execute the ``docker-compose`` commands for re-building or upgrading an
+// Execute the ``docker compose`` commands for re-building or upgrading an
 // installation with the specified YAML file (``yaml`` parameter).
 func RunDockerComposeUpgrade(yaml string, skipseed bool) {
-	fmt.Printf("[+] Running `docker-compose` commands to build containers with %s...\n", yaml)
-	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
+	fmt.Printf("[+] Running `%s` commands to build containers with %s...\n", dockerCmd, yaml)
+	downErr := RunCmd(dockerCmd, []string{"-f", yaml, "down"})
 	if downErr != nil {
 		log.Fatalf("Error trying to bring down any running containers with %s: %v\n", yaml, downErr)
 	}
-	buildErr := RunCmd("docker-compose", []string{"-f", yaml, "build"})
+	buildErr := RunCmd(dockerCmd, []string{"-f", yaml, "build"})
 	if buildErr != nil {
 		log.Fatalf("Error trying to build with %s: %v\n", yaml, buildErr)
 	}
-	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
+	upErr := RunCmd(dockerCmd, []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
 		log.Fatalf("Error trying to bring up environment with %s: %v\n", yaml, upErr)
 	}
@@ -112,7 +148,7 @@ func RunDockerComposeUpgrade(yaml string, skipseed bool) {
 		for {
 			if waitForDjango() {
 				fmt.Println("[+] Re-seeding database in case initial values were added or adjusted...")
-				seedErr := RunCmd("docker-compose", []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
+				seedErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "django", "/seed_data"})
 				if seedErr != nil {
 					log.Fatalf("Error trying to seed the database: %v\n", seedErr)
 				}
@@ -125,51 +161,51 @@ func RunDockerComposeUpgrade(yaml string, skipseed bool) {
 	fmt.Println("[+] All containers have been built!")
 }
 
-// Execute the ``docker-compose`` commands to start the environment with
+// Execute the ``docker compose`` commands to start the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeStart(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to restart containers with %s...\n", yaml)
-	startErr := RunCmd("docker-compose", []string{"-f", yaml, "start"})
+	fmt.Printf("[+] Running `%s` to restart containers with %s...\n", dockerCmd, yaml)
+	startErr := RunCmd(dockerCmd, []string{"-f", yaml, "start"})
 	if startErr != nil {
 		log.Fatalf("Error trying to restart the containers with %s: %v\n", yaml, startErr)
 	}
 }
 
-// Execute the ``docker-compose`` commands to stop all services in the environment with
+// Execute the ``docker compose`` commands to stop all services in the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeStop(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to stop services with %s...\n", yaml)
-	stopErr := RunCmd("docker-compose", []string{"-f", yaml, "stop"})
+	fmt.Printf("[+] Running `%s` to stop services with %s...\n", dockerCmd, yaml)
+	stopErr := RunCmd(dockerCmd, []string{"-f", yaml, "stop"})
 	if stopErr != nil {
 		log.Fatalf("Error trying to stop services with %s: %v\n", yaml, stopErr)
 	}
 }
 
-// Execute the ``docker-compose`` commands to restart the environment with
+// Execute the ``docker compose`` commands to restart the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeRestart(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to restart containers with %s...\n", yaml)
-	startErr := RunCmd("docker-compose", []string{"-f", yaml, "restart"})
+	fmt.Printf("[+] Running `%s` to restart containers with %s...\n", dockerCmd, yaml)
+	startErr := RunCmd(dockerCmd, []string{"-f", yaml, "restart"})
 	if startErr != nil {
 		log.Fatalf("Error trying to restart the containers with %s: %v\n", yaml, startErr)
 	}
 }
 
-// Execute the ``docker-compose`` commands to bring up the environment with
+// Execute the ``docker compose`` commands to bring up the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeUp(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to bring up the containers with %s...\n", yaml)
-	upErr := RunCmd("docker-compose", []string{"-f", yaml, "up", "-d"})
+	fmt.Printf("[+] Running `%s` to bring up the containers with %s...\n", dockerCmd, yaml)
+	upErr := RunCmd(dockerCmd, []string{"-f", yaml, "up", "-d"})
 	if upErr != nil {
 		log.Fatalf("Error trying to bring up the containers with %s: %v\n", yaml, upErr)
 	}
 }
 
-// Execute the ``docker-compose`` commands to bring down the environment with
+// Execute the ``docker compose`` commands to bring down the environment with
 // the specified YAML file (``yaml`` parameter).
 func RunDockerComposeDown(yaml string) {
-	fmt.Printf("[+] Running `docker-compose` to bring down the containers with %s...\n", yaml)
-	downErr := RunCmd("docker-compose", []string{"-f", yaml, "down"})
+	fmt.Printf("[+] Running `%s` to bring down the containers with %s...\n", dockerCmd, yaml)
+	downErr := RunCmd(dockerCmd, []string{"-f", yaml, "down"})
 	if downErr != nil {
 		log.Fatalf("Error trying to bring down the containers with %s: %v\n", yaml, downErr)
 	}
@@ -307,7 +343,7 @@ func waitForDjango() bool {
 	}
 }
 
-// Run Ghostwriter's unit and integration tests via ``docker-compose``.
+// Run Ghostwriter's unit and integration tests via ``docker compose``.
 // The tests are run in the development environment and assume certain values
 // will be set for test conditions, so the .env file is temporarily adjusted
 // during the test run.
@@ -322,7 +358,7 @@ func RunGhostwriterTests() {
 	WriteGhostwriterEnvironmentVariables()
 
 	// Run the unit tests
-	testErr := RunCmd("docker-compose", []string{"-f", "local.yml", "run", "--rm", "django", "python", "manage.py", "test"})
+	testErr := RunCmd(dockerCmd, []string{"-f", "local.yml", "run", "--rm", "django", "python", "manage.py", "test"})
 	if testErr != nil {
 		log.Fatalf("Error trying to run Ghostwriter's tests: %v\n", testErr)
 	}
