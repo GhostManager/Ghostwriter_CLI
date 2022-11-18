@@ -67,6 +67,10 @@ func RunBasicCmd(name string, args []string) (string, error) {
 // Execute a given command (``name``) with a list of arguments (``args``)
 // and return stdout and stderr buffers.
 func RunCmd(name string, args []string) error {
+	// If the command is ``docker``, prepend ``compose`` to the args
+	if name == "docker" {
+		args = append([]string{"compose"}, args...)
+	}
 	path, err := exec.LookPath(name)
 	if err != nil {
 		log.Fatalf("`%s` is not installed or not available in the current PATH variable", name)
