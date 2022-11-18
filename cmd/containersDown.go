@@ -11,7 +11,7 @@ var containersDownCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Bring down all Ghostwriter services and remove the containers",
 	Long: `Bring down all Ghostwriter services and remove the containers. This
-performs the equivalent of running the "docker-compose down" command.
+performs the equivalent of running the "docker compose down" command.
 
 Production containers are targeted by default. Use the "--dev" flag to
 target development containers`,
@@ -23,6 +23,7 @@ func init() {
 }
 
 func containersDown(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Bringing down the development environment")
 		docker.RunDockerComposeDown("local.yml")

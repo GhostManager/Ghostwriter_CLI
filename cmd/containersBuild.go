@@ -33,6 +33,7 @@ func init() {
 }
 
 func buildContainers(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Starting development environment build")
 		docker.SetDevMode()

@@ -30,6 +30,7 @@ func init() {
 }
 
 func installGhostwriter(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Starting development environment installation")
 		docker.SetDevMode()

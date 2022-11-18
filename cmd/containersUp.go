@@ -11,7 +11,7 @@ var containersUpCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Build, (re)create, and start all Ghostwriter containers",
 	Long: `Build, (re)create, and start all Ghostwriter containers. This
-performs the equivalent of running the "docker-compose up" command.
+performs the equivalent of running the "docker compose up" command.
 
 Production containers are targeted by default. Use the "--dev" flag to
 target development containers`,
@@ -23,6 +23,7 @@ func init() {
 }
 
 func containersUp(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Bringing up the development environment")
 		docker.SetDevMode()

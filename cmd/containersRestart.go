@@ -11,7 +11,7 @@ var containersRestartCmd = &cobra.Command{
 	Use:   "restart",
 	Short: "Restart all stopped and running Ghostwriter services",
 	Long: `Restart all stopped and running Ghostwriter services. This performs
-the equivalent of running the "docker-compose restart" command.
+the equivalent of running the "docker compose restart" command.
 
 Production containers are targeted by default. Use the "--dev" flag to
 target development containers`,
@@ -23,6 +23,7 @@ func init() {
 }
 
 func containersRestart(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Restarting the development environment")
 		docker.RunDockerComposeRestart("local.yml")

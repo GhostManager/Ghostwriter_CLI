@@ -21,6 +21,7 @@ func init() {
 }
 
 func runUnitTests(cmd *cobra.Command, args []string) {
+	docker.EvaluateDockerComposeStatus()
 	fmt.Println("[+] Running Ghostwriter's unit and integration tests...")
 	docker.RunGhostwriterTests()
 }
