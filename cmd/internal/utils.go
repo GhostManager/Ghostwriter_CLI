@@ -229,3 +229,53 @@ func quietTests() func() {
 		log.SetOutput(os.Stderr)
 	}
 }
+
+// CheckGhostwriterHealth fetches the latest health reports from Ghostwriter's status API endpoint.
+func CheckGhostwriterHealth(dev bool) (HealthIssues, error) {
+	var issues HealthIssues
+
+	protocol := "https"
+	port := "443"
+	if dev {
+		protocol = "http"
+		port = "8000"
+	}
+
+	baseUrl := protocol + "://localhost:" + port + "/status/"
+	client := http.Client{Timeout: time.Second * 2}
+
+	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
+	if err != nil {
+		return issues, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+
+	res, getErr := client.Do(req)
+	if getErr != nil {
+		return issues, getErr
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		return issues, readErr
+	}
+
+	var results map[string]interface{}
+	jsonErr := json.Unmarshal(body, &results)
+	if jsonErr != nil {
+		return issues, jsonErr
+	}
+
+	for key := range results {
+		if results[key] != "working" {
+			issues = append(issues, HealthIssue{"Service", key, results[key].(string)})
+		}
+	}
+
+	return issues, nil
+}
