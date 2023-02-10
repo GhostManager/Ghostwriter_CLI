@@ -11,9 +11,9 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 	defer quietTests()()
 
 	// Test parsing values and writing to the .env file
-	env_file := filepath.Join(GetCwdFromExe(), ".env")
+	envFile := filepath.Join(GetCwdFromExe(), ".env")
 	ParseGhostwriterEnvironmentVariables()
-	assert.True(t, FileExists(env_file), "Expected .env file to exist")
+	assert.True(t, FileExists(envFile), "Expected .env file to exist")
 
 	// Test a default value
 	assert.Equal(t, ghostEnv.Get("django_date_format"), "d M Y", "Value of `django_date_format` should be `d M Y`")
@@ -35,7 +35,7 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 	assert.Equal(
 		t,
 		format,
-		Configurations(Configurations{Configuration{Key: "django_compress_enabled", Val: "true"}, Configuration{Key: "django_date_format", Val: "d M Y"}}),
+		Configurations{Configuration{Key: "django_compress_enabled", Val: "true"}, Configuration{Key: "django_date_format", Val: "d M Y"}},
 		"`GetConfig()` should return a Configurations object",
 	)
 	assert.Equal(t, len(format), 2, "`GetConfig()` with two valid variables should return a two values")

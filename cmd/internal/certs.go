@@ -8,7 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	dhparam "github.com/Luzifer/go-dhparam"
+	"github.com/Luzifer/go-dhparam"
 	"log"
 	"math/big"
 	"os"
@@ -21,7 +21,7 @@ const (
 	bitSize = 2048
 )
 
-// Callback function for ``go-dhparam``.
+// Callback function for “go-dhparam“.
 func dhCallback(r dhparam.GeneratorResult) {
 	switch r {
 	case dhparam.GeneratorFoundPossiblePrime:
@@ -33,21 +33,21 @@ func dhCallback(r dhparam.GeneratorResult) {
 	}
 }
 
-// Generate Diffie-Helman parameters using ``go-dhparam``.
+// Generate Diffie-Helman parameters using “go-dhparam“.
 func generateDHParam() ([]byte, error) {
 	dh, err := dhparam.Generate(bitSize, dhparam.GeneratorTwo, dhCallback)
 	if err != nil {
 		return nil, err
 	}
-	pem, err := dh.ToPEM()
+	bytes, err := dh.ToPEM()
 	if err != nil {
 		return nil, err
 	}
-	return pem, nil
+	return bytes, nil
 }
 
 // Generate the Diffie-Helman parameters and then write the file to disk in the
-// output directory (``outputDir``) with the specified ``name``.
+// output directory (“outputDir“) with the specified “name“.
 func writeDHParams(outputDir, name string) error {
 	fileName := filepath.Join(outputDir, name+".pem")
 	if FileExists(fileName) {
@@ -66,7 +66,7 @@ func writeDHParams(outputDir, name string) error {
 	return nil
 }
 
-// Check if the SSL certificates are present in the specified ``certPath`` and ``keyPath``.
+// Check if the SSL certificates are present in the specified “certPath“ and “keyPath“.
 func checkCerts(certPath string, keyPath string) error {
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
 		return err
@@ -142,12 +142,12 @@ func generateCertificates() error {
 	return nil
 }
 
-// Generate TLS certificates and Diffie-Helman parameters file using Go.
+// GenerateCertificatePackage generate TLS certificates and Diffie-Helman parameters file using Go.
 func GenerateCertificatePackage() error {
 	// Ensure the ``ssl`` directory exists to receive the keys
-	ssl_path := filepath.Join(GetCwdFromExe(), "ssl")
-	if !DirExists(ssl_path) {
-		err := os.MkdirAll(ssl_path, os.ModePerm)
+	sslPath := filepath.Join(GetCwdFromExe(), "ssl")
+	if !DirExists(sslPath) {
+		err := os.MkdirAll(sslPath, os.ModePerm)
 		if err != nil {
 			log.Fatalf("Failed to make the `ssl` directory")
 		}
@@ -160,7 +160,7 @@ func GenerateCertificatePackage() error {
 		fmt.Printf("[!] Failed to generate TLS/SSL certificate files: %s\n", certErr)
 	}
 
-	dhErr := writeDHParams(ssl_path, "dhparam")
+	dhErr := writeDHParams(sslPath, "dhparam")
 	if dhErr != nil {
 		fmt.Printf("[!] Failed to generate Diffie-Helman parameters: %s\n", dhErr)
 	}

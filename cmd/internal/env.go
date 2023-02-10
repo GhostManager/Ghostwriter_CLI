@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-// Custom type for storing configuration values as Key:Val pairs.
+// Configuration is a custom type for storing configuration values as Key:Val pairs.
 type Configuration struct {
 	Key string
 	Val string
@@ -108,7 +108,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
 }
 
-// Write the environment variables to the ``.env`` file.
+// WriteGhostwriterEnvironmentVariables writes the environment variables to the “.env“ file.
 func WriteGhostwriterEnvironmentVariables() {
 	c := ghostEnv.AllSettings()
 	// To make it easier to read and look at, get all the keys, sort them, and display variables in order
@@ -135,10 +135,10 @@ func WriteGhostwriterEnvironmentVariables() {
 	}
 }
 
-// Attempt to find and open an existing .env file or create a new one.
+// ParseGhostwriterEnvironmentVariables attempts to find and open an existing .env file or create a new one.
 // If an .env file is found, load it into the Viper configuration.
 // If an .env file is not found, create a new one with default values.
-// Then write the final file with ``WriteGhostwriterEnvironmentVariables()``.
+// Then write the final file with “WriteGhostwriterEnvironmentVariables()“.
 func ParseGhostwriterEnvironmentVariables() {
 	setGhostwriterConfigDefaultValues()
 	ghostEnv.SetConfigName(".env")
@@ -163,7 +163,7 @@ func ParseGhostwriterEnvironmentVariables() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Update the environment variables to switch to production mode.
+// SetProductionMode updates the environment variables to switch to production mode.
 func SetProductionMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", false)
 	ghostEnv.Set("django_secure_ssl_redirect", true)
@@ -171,7 +171,7 @@ func SetProductionMode() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Update the environment variables to switch to development mode.
+// SetDevMode updates the environment variables to switch to development mode.
 func SetDevMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", true)
 	ghostEnv.Set("django_secure_ssl_redirect", false)
@@ -179,12 +179,12 @@ func SetDevMode() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Convert the environment variable (``env``) to a slice of strings.
+// Convert the environment variable (“env“) to a slice of strings.
 func splitVariable(env string) []string {
 	return strings.Split(ghostEnv.GetString(env), " ")
 }
 
-// Remove one or more matches for ``item`` from a ``slice`` of strings.
+// Remove one or more matches for “item“ from a “slice“ of strings.
 func removeItem(slice []string, item string) []string {
 	counter := 0
 	// We loop through the entire list in case an exact match appears more than once
@@ -198,7 +198,7 @@ func removeItem(slice []string, item string) []string {
 	return slice
 }
 
-// Append a ``host`` to the given environment variable (``env``).
+// Append a “host“ to the given environment variable (“env“).
 func appendHost(env string, host string) {
 	s := splitVariable(env)
 	// Append the new host only if it's not already in the list
@@ -210,14 +210,14 @@ func appendHost(env string, host string) {
 	}
 }
 
-// Remove a ``host`` from the given environment variable (``env``).
+// Remove a “host“ from the given environment variable (“env“).
 func removeHost(env string, host string) {
 	s := splitVariable(env)
 	s = removeItem(s, host)
 	ghostEnv.Set(env, strings.TrimSpace(strings.Join(s, " ")))
 }
 
-// Retrieve all values from the .env configuration file.
+// GetConfigAll retrieves all values from the .env configuration file.
 func GetConfigAll() Configurations {
 	c := ghostEnv.AllSettings()
 	keys := make([]string, 0, len(c))
@@ -237,7 +237,7 @@ func GetConfigAll() Configurations {
 	return values
 }
 
-// Retrieve the specified values from the .env file.
+// GetConfig retrieves the specified values from the .env file.
 func GetConfig(args []string) Configurations {
 	var values Configurations
 	for i := 0; i < len(args[0:]); i++ {
@@ -255,7 +255,7 @@ func GetConfig(args []string) Configurations {
 	return values
 }
 
-// Set the value of the specified key in the .env file.
+// SetConfig sets the value of the specified key in the .env file.
 func SetConfig(key string, value string) {
 	if strings.ToLower(value) == "true" {
 		ghostEnv.Set(key, true)
@@ -267,25 +267,25 @@ func SetConfig(key string, value string) {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Append a host to the allowed hosts list in the .env file.
+// AllowHost appends a host to the allowed hosts list in the .env file.
 func AllowHost(host string) {
 	appendHost("django_allowed_hosts", host)
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Remove a host to the allowed hosts list in the .env file.
+// DisallowHost removes a host to the allowed hosts list in the .env file.
 func DisallowHost(host string) {
 	removeHost("django_allowed_hosts", host)
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Append an origin to the trusted origins list in the .env file.
+// TrustOrigin appends an origin to the trusted origins list in the .env file.
 func TrustOrigin(host string) {
 	appendHost("django_csrf_trusted_origins", host)
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Remove an origin to the trusted origins list in the .env file.
+// DistrustOrigin removes an origin to the trusted origins list in the .env file.
 func DistrustOrigin(host string) {
 	removeHost("django_csrf_trusted_origins", host)
 	WriteGhostwriterEnvironmentVariables()

@@ -7,7 +7,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +16,28 @@ import (
 	"time"
 )
 
-// Get the current working directory based on ``ghostwriter-cli`` location.
+// HealthIssue is a custom type for storing healthcheck output.
+type HealthIssue struct {
+	Type    string
+	Service string
+	Message string
+}
+
+type HealthIssues []HealthIssue
+
+func (c HealthIssues) Len() int {
+	return len(c)
+}
+
+func (c HealthIssues) Less(i, j int) bool {
+	return c[i].Service < c[j].Service
+}
+
+func (c HealthIssues) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+// GetCwdFromExe gets the current working directory based on “ghostwriter-cli“ location.
 func GetCwdFromExe() string {
 	exe, err := os.Executable()
 	if err != nil {
@@ -25,7 +46,7 @@ func GetCwdFromExe() string {
 	return filepath.Dir(exe)
 }
 
-// Determine if a given string is a valid filepath.
+// FileExists determines if a given string is a valid filepath.
 // Reference: https://golangcode.com/check-if-a-file-exists/
 func FileExists(path string) bool {
 	info, err := os.Stat(path)
@@ -37,7 +58,7 @@ func FileExists(path string) bool {
 	return !info.IsDir()
 }
 
-// Determine if a given string is a valid directory.
+// DirExists determines if a given string is a valid directory.
 // Reference: https://golangcode.com/check-if-a-file-exists/
 func DirExists(path string) bool {
 	info, err := os.Stat(path)
@@ -49,22 +70,22 @@ func DirExists(path string) bool {
 	return info.IsDir()
 }
 
-// Check the $PATH environment variable for a given ``cmd`` and return a ``bool``
+// CheckPath checks the $PATH environment variable for a given “cmd“ and return a “bool“
 // indicating if it exists.
 func CheckPath(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
-// Execute a given command (``name``) with a list of arguments (``args``)
-// and return a ``string`` with the output.
+// RunBasicCmd executes a given command (“name“) with a list of arguments (“args“)
+// and return a “string“ with the output.
 func RunBasicCmd(name string, args []string) (string, error) {
 	out, err := exec.Command(name, args...).Output()
 	output := string(out[:])
 	return output, err
 }
 
-// Execute a given command (``name``) with a list of arguments (``args``)
+// RunCmd executes a given command (“name“) with a list of arguments (“args“)
 // and return stdout and stderr buffers.
 func RunCmd(name string, args []string) error {
 	// If the command is ``docker``, prepend ``compose`` to the args
@@ -116,7 +137,7 @@ func RunCmd(name string, args []string) error {
 	return nil
 }
 
-// Fetch the local Ghostwriter version from the ``VERSION`` file.
+// GetLocalGhostwriterVersion fetches the local Ghostwriter version from the “VERSION“ file.
 func GetLocalGhostwriterVersion() (string, error) {
 	var output string
 
@@ -146,7 +167,7 @@ func GetLocalGhostwriterVersion() (string, error) {
 	return output, nil
 }
 
-// Fetch the latest Ghostwriter version from GitHub's API.
+// GetRemoteGhostwriterVersion fetches the latest Ghostwriter version from GitHub's API.
 func GetRemoteGhostwriterVersion() (string, error) {
 	var output string
 
@@ -159,7 +180,7 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
-	body, readErr := ioutil.ReadAll(resp.Body)
+	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
 		return "", readErr
 	}
@@ -180,8 +201,8 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	return output, nil
 }
 
-// Check if a slice of strings (``slice`` parameter) contains a given
-// string (``search`` parameter).
+// Contains checks if a slice of strings (“slice“ parameter) contains a given
+// string (“search“ parameter).
 func Contains(slice []string, target string) bool {
 	for _, item := range slice {
 		if item == target {

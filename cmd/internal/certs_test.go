@@ -13,16 +13,16 @@ func TestGenerateCertificatePackage(t *testing.T) {
 	GenerateCertificatePackage()
 
 	// Paths we expect to exist after generating the certificate package
-	ssl_dir := filepath.Join(GetCwdFromExe(), "ssl")
-	dh_path := filepath.Join(GetCwdFromExe(), "ssl", "dhparam.pem")
-	key_path := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
-	crt_path := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
+	sslDir := filepath.Join(GetCwdFromExe(), "ssl")
+	dhPath := filepath.Join(GetCwdFromExe(), "ssl", "dhparam.pem")
+	keyPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
+	crtPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
 
 	// Test if the `ssl` folder exists
-	assert.True(t, DirExists(ssl_dir), "Expected `ssl` folder to exist")
+	assert.True(t, DirExists(sslDir), "Expected `ssl` folder to exist")
 
 	// Test if all certificate package files exist
-	assert.True(t, FileExists(dh_path), "Expected `dhparam.pem` file to exist")
-	assert.True(t, FileExists(key_path), "Expected `ghostwriter.key` file to exist")
-	assert.True(t, FileExists(crt_path), "Expected `ghostwriter.crt` file to exist")
+	assert.True(t, FileExists(dhPath), "Expected `dhparam.pem` file to exist")
+	assert.True(t, FileExists(keyPath), "Expected `ghostwriter.key` file to exist")
+	assert.True(t, FileExists(crtPath), "Expected `ghostwriter.crt` file to exist")
 }
