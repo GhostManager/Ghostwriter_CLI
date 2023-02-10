@@ -1,6 +1,7 @@
-name: Publish Binaries to Release
+name: Publish Binaries to Release (macOS)
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*.*.*"
