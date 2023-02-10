@@ -70,5 +70,4 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
-	fmt.Println("[+] Health checks are complete")
 }
