@@ -38,7 +38,7 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 	containerIssues, dockerErr := docker.CheckDockerHealth(dev)
 
 	if dockerErr != nil {
-		fmt.Printf("[!] Failed to get container information from Docker: %s", dockerErr)
+		fmt.Printf("[!] Failed to get container information from Docker: %s\n", dockerErr)
 	} else {
 		if len(containerIssues) > 0 {
 			fmt.Printf("[*] Identified %d issues with one or more containers:\n\n", len(containerIssues))
@@ -53,7 +53,7 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 			fmt.Println("[*] Identified zero container issues, now testing services...")
 			serviceIssues, svcErr := utils.CheckGhostwriterHealth(dev)
 			if svcErr != nil {
-				fmt.Printf("[!] Failed to get health status from Ghostwriter's /status/ endpoint: %s", svcErr)
+				fmt.Printf("[!] Failed to get health status from Ghostwriter's /status/ endpoint: %s\n", svcErr)
 			} else {
 				if len(serviceIssues) > 0 {
 					fmt.Printf("[*] Identified %d issues with one or more services:\n\n", len(serviceIssues))
