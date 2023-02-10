@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2023-02-10
+
+## Added
+
+* Added a `healthcheck` command that validates all Ghostwriter services are running and passing their respective health checks
+
+### Changed
+
+* Changed the `running` command to filter out exited containers
+* Container commands will now default to using the `docker compose` command used by new installations of Compose
+  * Commands will try to fall back to the deprecated `docker-compose` script when the `docker compose` plugin is not in the PATH
+
 ## [0.2.7] - 2022-10-31
 
 ## Added
