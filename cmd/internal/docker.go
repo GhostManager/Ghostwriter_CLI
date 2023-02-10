@@ -368,3 +368,46 @@ func RunGhostwriterTests() {
 	ghostEnv.Set("DJANGO_SETTINGS_MODULE", currentSettingsModule)
 	WriteGhostwriterEnvironmentVariables()
 }
+
+// CheckDockerHealth determines if all containers are running and passing their respective health checks.
+func CheckDockerHealth(dev bool) (HealthIssues, error) {
+	var found []string
+	var imageName string
+	var issues HealthIssues
+
+	requiredImages := prodImages
+	if dev {
+		requiredImages = devImages
+	}
+
+	// Check running containers to make sure every necessary container is up
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return issues, err
+	}
+
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+		All: false,
+	})
+	if err != nil {
+		return issues, err
+	}
+
+	if len(containers) > 0 {
+		for _, container := range containers {
+			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
+				found = append(found, container.Image)
+			}
+		}
+		for _, image := range requiredImages {
+			if !Contains(found, image) {
+				imageName = strings.ToUpper(image[strings.LastIndex(image, "_")+1:])
+				issues = append(issues, HealthIssue{"Container", imageName, "Container is not running"})
+			}
+		}
+	} else {
+		issues = append(issues, HealthIssue{"Container", "ALL", "No Ghostwriter containers are running"})
+	}
+
+	return issues, nil
+}
