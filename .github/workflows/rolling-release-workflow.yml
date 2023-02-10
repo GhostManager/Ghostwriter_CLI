@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, darwin, windows]
+        goos: [linux, windows]
         goarch: [amd64]
     steps:
       - name: Checkout
@@ -31,7 +31,6 @@ jobs:
           ldflags: -s -w -X "github.com/GhostManager/Ghostwriter_CLI/cmd/config.Version=${{ env.VERSION }}" -X "github.com/GhostManager/Ghostwriter_CLI/cmd/config.BuildDate=${{ env.BUILD_DATE }}"
           release_tag: rolling
           overwrite: true
-          if: matrix.job.os != 'darwin'
           executable_compression: upx --brute
 
       - name: Update Rolling Release
