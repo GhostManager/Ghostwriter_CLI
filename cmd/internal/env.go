@@ -60,6 +60,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("django_secret_key", GenerateRandomPassword(32, false))
 	ghostEnv.SetDefault("django_secure_ssl_redirect", false)
 	ghostEnv.SetDefault("django_settings_module", "config.settings.local")
+	ghostEnv.SetDefault("django_social_account_allow_registration", false)
 	ghostEnv.SetDefault("django_superuser_email", "admin@ghostwriter.local")
 	ghostEnv.SetDefault("django_superuser_password", GenerateRandomPassword(32, true))
 	ghostEnv.SetDefault("django_superuser_username", "admin")
