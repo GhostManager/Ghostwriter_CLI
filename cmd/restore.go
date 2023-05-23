@@ -8,10 +8,11 @@ import (
 
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore",
+	Use:   "restore <backup filename>",
 	Short: "Restores the specified PostgreSQL database backup",
 	Long: `Restores the specified PostgreSQL database backup stored it in the production_postgres_data_backups
-Docker volume. Use the --list flag to list current backup files.
+Docker volume. Use the --list flag to list current backup files. Provide the full filename of the file you want
+to restore.
 
 WARNING: Restoring cannot be undone!
 
