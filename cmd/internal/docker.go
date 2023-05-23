@@ -38,16 +38,20 @@ type Container struct {
 	Name   string
 }
 
+// Containers is a collection of Container structs
 type Containers []Container
 
+// Len returns the length of a Containers struct
 func (c Containers) Len() int {
 	return len(c)
 }
 
+// Less determines if one Container is less than another Container
 func (c Containers) Less(i, j int) bool {
 	return c[i].Image < c[j].Image
 }
 
+// Swap exchanges the position of two Container values in a Containers struct
 func (c Containers) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
@@ -410,4 +414,34 @@ func CheckDockerHealth(dev bool) (HealthIssues, error) {
 	}
 
 	return issues, nil
+}
+
+// RunDockerComposeBackup executes the “docker compose“ command to back up the PostgreSQL database in the environment
+// from the specified YAML file (“yaml“ parameter).
+func RunDockerComposeBackup(yaml string) {
+	fmt.Printf("[+] Running `%s` to back up the PostgreSQL database with %s...\n", dockerCmd, yaml)
+	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "backup"})
+	if backupErr != nil {
+		log.Fatalf("Error trying to back up the PostgreSQL database with %s: %v\n", yaml, backupErr)
+	}
+}
+
+// RunDockerComposeBackups executes the “docker compose“ command to list available PostgreSQL database backups in the
+// environment from the specified YAML file (“yaml“ parameter).
+func RunDockerComposeBackups(yaml string) {
+	fmt.Printf("[+] Running `%s` to list avilable PostgreSQL database backup files with %s...\n", dockerCmd, yaml)
+	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "backups"})
+	if backupErr != nil {
+		log.Fatalf("Error trying to list backups files with %s: %v\n", yaml, backupErr)
+	}
+}
+
+// RunDockerComposeRestore executes the “docker compose“ command to restore a PostgreSQL database backup in the
+// environment from the specified YAML file (“yaml“ parameter).
+func RunDockerComposeRestore(yaml string, restore string) {
+	fmt.Printf("[+] Running `%s` to restore the PostgreSQL database backup file %s with %s...\n", dockerCmd, restore, yaml)
+	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "restore", restore})
+	if backupErr != nil {
+		log.Fatalf("Error trying to restore %s with %s: %v\n", restore, yaml, backupErr)
+	}
 }
