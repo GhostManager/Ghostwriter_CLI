@@ -19,16 +19,20 @@ type Configuration struct {
 	Val string
 }
 
+// Configurations is a custom type for storing `Configuration` values
 type Configurations []Configuration
 
+// Len returns the length of a Configurations struct
 func (c Configurations) Len() int {
 	return len(c)
 }
 
+// Less determines if one Configuration is less than another Configuration
 func (c Configurations) Less(i, j int) bool {
 	return c[i].Key < c[j].Key
 }
 
+// Swap exchanges the position of two Configuration values in a Configurations struct
 func (c Configurations) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
