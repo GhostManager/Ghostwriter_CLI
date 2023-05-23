@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -278,4 +279,30 @@ func CheckGhostwriterHealth(dev bool) (HealthIssues, error) {
 	}
 
 	return issues, nil
+}
+
+// AskForConfirmation asks the user for confirmation. A user must type in "yes" or "no" and
+// then press enter. It has fuzzy matching, so "y", "Y", "yes", "YES", and "Yes" all count as
+// confirmations. If the input is not recognized, it will ask again. The function does not return
+// until it gets a valid response from the user.
+// Original source: https://gist.github.com/r0l1/3dcbb0c8f6cfe9c66ab8008f55f8f28b
+func AskForConfirmation(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Printf("%s [y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
 }
