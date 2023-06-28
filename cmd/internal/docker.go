@@ -56,14 +56,20 @@ func (c Containers) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-// EvaluateDockerComposeStatus determine if the host has the “docker compose“ plugin or the “docker compose“
+// EvaluateDockerComposeStatus determines if the host has the “docker compose“ plugin or the “docker compose“
 // script installed and set the global `dockerCmd` variable.
 func EvaluateDockerComposeStatus() error {
-	fmt.Println("[+] Checking status of Docker and the Compose plugin...")
+	fmt.Println("[+] Checking the status of Docker and the Compose plugin...")
 	// Check for ``docker`` first because it's required for everything to come
 	dockerExists := CheckPath("docker")
 	if !dockerExists {
 		log.Fatalln("Docker is not installed on this system, so please install Docker and try again")
+	}
+
+	// Check if the Docker Engine is running
+	_, engineErr := RunBasicCmd("docker", []string{"info"})
+	if engineErr != nil {
+		log.Fatalln("Docker is installed on this system, but the daemon is not running")
 	}
 
 	// Check for the ``compose`` plugin as our first choice
