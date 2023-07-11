@@ -1,4 +1,4 @@
-name: Publish Binaries to Release
+name: Publish Binaries to Release (Linux)
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows]
+        goos: [linux]
         goarch: [amd64, arm64]
     steps:
       - name: Checkout

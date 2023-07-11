@@ -1,4 +1,4 @@
-name: Build Rolling Release
+name: Build Rolling Release (Windows)
 
 on:
   workflow_dispatch:
@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows]
-        goarch: [amd64, arm64]
+        goos: [windows]
+        goarch: [amd64]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
