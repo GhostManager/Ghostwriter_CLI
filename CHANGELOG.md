@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.15] - 2023-08-18
+
+### Added
+
+* Added configuration options for managing Ghostwriter's browser sessions
+  * `DJANGO_SESSION_COOKIE_AGE` sets the number of seconds a session cookie will last before expiring (default: 1209600)
+  * `DJANGO_SESSION_EXPIRE_AT_BROWSER_CLOSE` sets whether the session cookie will expire when the browser is closed (default: false)
+  * `DJANGO_SESSION_SAVE_EVERY_REQUEST` sets whether the session cookie will be saved on every request (default: false)
+
 ## [0.2.14] - 2023-06-28
 
 ### Changed
