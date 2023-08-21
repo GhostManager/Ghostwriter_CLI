@@ -48,6 +48,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("ipythondir", "/app/.ipython")
 
 	// Django configuration
+	ghostEnv.SetDefault("2fa_always_reveal_backup_tokens", false)
 	ghostEnv.SetDefault("django_account_allow_registration", false)
 	ghostEnv.SetDefault("django_account_email_verification", "none")
 	ghostEnv.SetDefault("django_admin_url", "admin/")
@@ -63,9 +64,9 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("django_qcluster_name", "soar")
 	ghostEnv.SetDefault("django_secret_key", GenerateRandomPassword(32, false))
 	ghostEnv.SetDefault("django_secure_ssl_redirect", false)
-	ghostEnv.SetDefault("django_session_cookie_age", 1209600)
-	ghostEnv.SetDefault("django_session_expire_at_browser_close", false)
-	ghostEnv.SetDefault("django_session_save_every_request", false)
+	ghostEnv.SetDefault("django_session_cookie_age", 32400)
+	ghostEnv.SetDefault("django_session_expire_at_browser_close", true)
+	ghostEnv.SetDefault("django_session_save_every_request", true)
 	ghostEnv.SetDefault("django_settings_module", "config.settings.local")
 	ghostEnv.SetDefault("django_social_account_allow_registration", false)
 	ghostEnv.SetDefault("django_superuser_email", "admin@ghostwriter.local")
