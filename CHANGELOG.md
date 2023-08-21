@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.15] - 2023-08-18
+
+### Added
+
+* Added a configuration option for `2FA_ALWAYS_REVEAL_BACKUP_TOKENS` to control if 2FA backup codes are revealed automatically when viewing the page
+
+## [0.2.14] - 2023-08-18
+
+### Changed
+
+* Changed the defaults of the session management settings to improve session security
+  * Previous defaults, Django's default values, were very generous with session expiration
+  * `DJANGO_SESSION_COOKIE_AGE` : Now 32,400 seconds (9 hours) down from 1,209,600 seconds (2 weeks)
+  * `DJANGO_SESSION_EXPIRE_AT_BROWSER_CLOSE` : Now `true` to end sessions when the browser is closed
+  * `DJANGO_SESSION_SAVE_EVERY_REQUEST` : Now `true` to automatically renew the session expiration while Ghostwriter is in-use
+
 ## [0.2.14] - 2023-08-17
 
 ### Added
