@@ -48,12 +48,13 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("ipythondir", "/app/.ipython")
 
 	// Django configuration
-	ghostEnv.SetDefault("2fa_always_reveal_backup_tokens", false)
+	ghostEnv.SetDefault("django_2fa_always_reveal_backup_tokens", false)
 	ghostEnv.SetDefault("django_account_allow_registration", false)
 	ghostEnv.SetDefault("django_account_email_verification", "none")
 	ghostEnv.SetDefault("django_admin_url", "admin/")
 	ghostEnv.SetDefault("django_allowed_hosts", "localhost 127.0.0.1 django nginx host.docker.internal ghostwriter.local")
 	ghostEnv.SetDefault("django_compress_enabled", true)
+	ghostEnv.SetDefault("django_csrf_cookie_secure", false)
 	ghostEnv.SetDefault("django_csrf_trusted_origins", "")
 	ghostEnv.SetDefault("django_date_format", "d M Y")
 	ghostEnv.SetDefault("django_host", "django")
@@ -65,7 +66,8 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("django_secret_key", GenerateRandomPassword(32, false))
 	ghostEnv.SetDefault("django_secure_ssl_redirect", false)
 	ghostEnv.SetDefault("django_session_cookie_age", 32400)
-	ghostEnv.SetDefault("django_session_expire_at_browser_close", true)
+	ghostEnv.SetDefault("django_session_cookie_secure", false)
+	ghostEnv.SetDefault("django_session_expire_at_browser_close", false)
 	ghostEnv.SetDefault("django_session_save_every_request", true)
 	ghostEnv.SetDefault("django_settings_module", "config.settings.local")
 	ghostEnv.SetDefault("django_social_account_allow_registration", false)
@@ -177,6 +179,8 @@ func SetProductionMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", false)
 	ghostEnv.Set("django_secure_ssl_redirect", true)
 	ghostEnv.Set("django_settings_module", "config.settings.production")
+	ghostEnv.Set("django_csrf_cookie_secure", true)
+	ghostEnv.Set("django_session_cookie_secure", true)
 	WriteGhostwriterEnvironmentVariables()
 }
 
@@ -185,6 +189,8 @@ func SetDevMode() {
 	ghostEnv.Set("hasura_graphql_dev_mode", true)
 	ghostEnv.Set("django_secure_ssl_redirect", false)
 	ghostEnv.Set("django_settings_module", "config.settings.local")
+	ghostEnv.Set("django_csrf_cookie_secure", false)
+	ghostEnv.Set("django_session_cookie_secure", false)
 	WriteGhostwriterEnvironmentVariables()
 }
 
