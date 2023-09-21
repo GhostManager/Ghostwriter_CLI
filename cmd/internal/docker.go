@@ -117,7 +117,7 @@ func RunDockerComposeInstall(yaml string) {
 			fmt.Println("[+] Proceeding with Django superuser creation...")
 			userErr := RunCmd(
 				dockerCmd, []string{"-f", yaml, "run", "--rm", "django", "python",
-					"manage.py", "createsuperuser", "--noinput"},
+					"manage.py", "createsuperuser", "--noinput", "--role", "admin"},
 			)
 			// This may fail if the user has already created a superuser, so we don't exit
 			if userErr != nil {
