@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
 	"log"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 // Vars for tracking the list of Ghostwriter images
@@ -333,23 +334,31 @@ func isPostgresStarted() bool {
 
 // Determine if the Ghostwriter application has completed startup
 func waitForDjango() bool {
+	// Wait for ghostwriter to start running
+	fmt.Println("[+] Waiting for Django application startup to complete...")
+	counter := 0
 	for {
-		if isServiceRunning("ghostwriter_django") {
-			fmt.Println("[+] Waiting for Django application startup to complete...")
-			counter := 1
-			for {
-				fmt.Printf("\r%s", strings.Repeat(".", counter))
-				if isDjangoStarted() {
-					fmt.Print("\n[+] Django application started\n")
-					return true
-				}
-				if isPostgresStarted() {
-					log.Fatalf("\nPostgreSQL cannot start because of a password mismatch. Please read: https://www.ghostwriter.wiki/getting-help/faq#ghostwriter-cli-reports-an-issue-with-postgresql")
-				}
-				time.Sleep(1 * time.Second)
-				counter++
-			}
+		if !isServiceRunning("ghostwriter_django") {
+			fmt.Print("\n")
+			log.Fatalf("Django container exited unexpectedly. Check the logs in docker for the ghostwriter_django container")
 		}
+		if isDjangoStarted() {
+			fmt.Print("\n[+] Django application started\n")
+			return true
+		}
+		if isPostgresStarted() {
+			fmt.Print("\n")
+			log.Fatalf("PostgreSQL cannot start because of a password mismatch. Please read: https://www.ghostwriter.wiki/getting-help/faq#ghostwriter-cli-reports-an-issue-with-postgresql")
+		}
+
+		if counter > 40 {
+			fmt.Print("\n")
+			log.Fatalf("Django did not start.")
+		}
+
+		fmt.Print(".")
+		time.Sleep(1 * time.Second)
+		counter++
 	}
 }
 
