@@ -81,36 +81,50 @@ func generateCertificates() error {
 	certPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
 	keyPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
 	if checkCerts(certPath, keyPath) == nil {
+		fmt.Printf("[!] Found existing certificate files, so new ones will not be generated...\n")
+		fmt.Printf("[*] Rename or delete ssl/ghostwriter.key and ssl/ghostwriter.key if you want to replace these keys")
 		return nil
 	}
 	fmt.Printf("[*] Did not find existing TLS/SSL certs for the Nginx container, so generating them now...\n")
 
+	// Generate the ECDSA private key
 	priv, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
 	if err != nil {
 		log.Printf("Failed to generate private key: %s\n", err)
 		return err
 	}
+
+	// Set dates to today and one year from now
 	notBefore := time.Now()
 	oneYear := 365 * 24 * time.Hour
 	notAfter := notBefore.Add(oneYear)
+
+	// Generate a serial number for the certificate
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
 		log.Printf("Failed to generate the serial number: %s\n", err)
 		return err
 	}
+
+	// Template the certificate with necessary values
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"Ghostwriter"},
+			CommonName:   "nginx",
 		},
-		NotBefore: notBefore,
-		NotAfter:  notAfter,
+		SignatureAlgorithm: x509.ECDSAWithSHA384,
+		PublicKeyAlgorithm: x509.ECDSA,
+		NotBefore:          notBefore,
+		NotAfter:           notAfter,
 
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 	}
+
+	// Create the certificate using our private key and the template
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
 		log.Printf("Failed to create certificate: %s\n", err)
