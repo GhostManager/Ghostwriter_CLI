@@ -351,9 +351,9 @@ func waitForDjango() bool {
 			log.Fatalf("PostgreSQL cannot start because of a password mismatch. Please read: https://www.ghostwriter.wiki/getting-help/faq#ghostwriter-cli-reports-an-issue-with-postgresql")
 		}
 
-		if counter > 40 {
+		if counter > 120 {
 			fmt.Print("\n")
-			log.Fatalf("Django did not start.")
+			log.Fatalf("Django did not start after 120 seconds.")
 		}
 
 		fmt.Print(".")
