@@ -5,7 +5,9 @@ package internal
 
 import (
 	"bufio"
+	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -243,7 +246,8 @@ func CheckGhostwriterHealth(dev bool) (HealthIssues, error) {
 	}
 
 	baseUrl := protocol + "://localhost:" + port + "/status/"
-	client := http.Client{Timeout: time.Second * 2}
+	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := http.Client{Timeout: time.Second * 2, Transport: transport}
 
 	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
 	if err != nil {
@@ -253,12 +257,16 @@ func CheckGhostwriterHealth(dev bool) (HealthIssues, error) {
 	req.Header.Set("Accept", "application/json")
 
 	res, getErr := client.Do(req)
-	if getErr != nil {
-		return issues, getErr
-	}
 
 	if res.Body != nil {
 		defer res.Body.Close()
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return issues, errors.New("Non-OK HTTP status suggests an issue with the Django or Nginx services (Code " + strconv.Itoa(res.StatusCode) + ")")
+	}
+	if getErr != nil {
+		return issues, getErr
 	}
 
 	body, readErr := io.ReadAll(res.Body)
