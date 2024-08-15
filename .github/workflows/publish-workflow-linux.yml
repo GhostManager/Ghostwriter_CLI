@@ -16,7 +16,7 @@ jobs:
         goarch: [amd64, arm64]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Values
         run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV && echo "BUILD_DATE=$(date -u '+%d %b %Y')" >> $GITHUB_ENV

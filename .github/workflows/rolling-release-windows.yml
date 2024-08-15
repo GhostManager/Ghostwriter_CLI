@@ -15,7 +15,7 @@ jobs:
         goarch: [amd64]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Values
         run: echo "VERSION=rolling" >> $GITHUB_ENV && echo "BUILD_DATE=$(date -u '+%d %b %Y')" >> $GITHUB_ENV
@@ -34,7 +34,7 @@ jobs:
           executable_compression: upx --brute
 
       - name: Update Rolling Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Rolling Release (unstable)
           tag_name: rolling
