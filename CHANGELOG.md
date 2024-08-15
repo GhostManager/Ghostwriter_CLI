@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.20] - 2024-08-15
+
+### Added
+
+* Added configuration options for the new SSO options coming to Ghostwriter
+  * Options are `django_social_account_domain_allowlist` and `django_social_account_login_on_get`
+
 ## [0.2.19] - 2024-03-29
 
 ### Changed
