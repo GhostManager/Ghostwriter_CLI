@@ -16,5 +16,7 @@
 
 .DS_Store
 
+.idea
+
 .env
-cmd/ghostwriter-cli/ghostwriter-cli
+ghostwriter-cli
