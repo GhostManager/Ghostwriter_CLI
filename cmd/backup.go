@@ -7,24 +7,30 @@ import (
 )
 
 var lst bool
+var download bool
+var yml string
 
 // backupCmd represents the backup command
 var backupCmd = &cobra.Command{
 	Use:   "backup",
-	Short: "Creates a backup of the PostgreSQL database",
-	Long: `Creates a backup of the PostgreSQL database and stores it in the "production_postgres_data_backups""
-Docker volume as a timestamped gunzip. The backup is the result of PostgreSQL's pg_dump piped into gzip.
+	Short: "Creates a backup of the PostgreSQL database and media files",
+	Long: `Creates a backup of the PostgreSQL database and media files and stores them in the
+"production_postgres_data_backups" Docker volume as a timestamped gunzip. The database backup is the result of
+PostgreSQL's pg_dump piped into gzip.
 
 Use the --list flag to list current backup files.
 
-Example file: backup_2023_05_23T15_54_19.sql.gz`,
+Download the backup file(s) with the --download flag.
+
+Example file: ghostwriter_2023_05_23T15_54_19.sql.gz`,
 	Run: backupDatabase,
 }
 
 func init() {
 	rootCmd.AddCommand(backupCmd)
 
-	backupCmd.Flags().BoolVar(&lst, "list", false, "List the available backup files")
+	backupCmd.Flags().BoolVar(&lst, "list", false, "List the available backup file(s)")
+	backupCmd.Flags().BoolVar(&download, "download", false, "Download the backup file(s)")
 }
 
 func backupDatabase(cmd *cobra.Command, args []string) {
@@ -32,22 +38,20 @@ func backupDatabase(cmd *cobra.Command, args []string) {
 	if dockerErr == nil {
 		if dev {
 			docker.SetDevMode()
-			if lst {
-				fmt.Println("[+] Getting a list of available backup files in the development environment")
-				docker.RunDockerComposeBackups("local.yml")
-			} else {
-				fmt.Println("[+] Backing up the PostgreSQL database for the development environment")
-				docker.RunDockerComposeBackup("local.yml")
-			}
+			yml = "local.yml"
 		} else {
 			docker.SetProductionMode()
-			if lst {
-				fmt.Println("[+] Getting a list of available backup files in the production environment")
-				docker.RunDockerComposeBackups("production.yml")
-			} else {
-				fmt.Println("[+] Backing up the PostgreSQL database for the production environment")
-				docker.RunDockerComposeBackup("production.yml")
-			}
+			yml = "production.yml"
+		}
+		if lst {
+			fmt.Println("[+] Getting a list of available backup files...")
+			docker.RunDockerListBackups(yml)
+		} else if download {
+			fmt.Println("[+] Downloading backup files...")
+			docker.RunDockerDownloadBackups(yml)
+		} else {
+			fmt.Println("[+] Backing up the PostgreSQL database and media files...")
+			docker.RunDockerComposeBackup(yml)
 		}
 	}
 }

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - YYYY-MM-DD
+
+### Added
+
+* Added a `--downlaod` flag to the `backup` command to download backup files to the host machine
+  * The `--download` flag will download the database dump and media tarball to the host machine
+  * The files will be downloaded to the current working directory of the host machine
+  * The tarball will be named `ghostwriter_` followed by the current date and time
+
+### Changed
+
+* The `backup` command now creates a backup of media files in addition to the database dump
+  * The base command will create a backup of the media files and a database dump
+  * Collected media files are stored in a tarball alongside the database dump prefixed with `media_` followed by the current date and time
+* The `restore` command now restores media files in addition to the database dump
+
 ## [0.2.20] - 2024-08-15
 
 ### Added
