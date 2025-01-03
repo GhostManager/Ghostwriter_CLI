@@ -101,6 +101,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("hasura_graphql_enabled_log_types", "startup, http-log, webhook-log, websocket-log, query-log")
 	ghostEnv.SetDefault("hasura_graphql_enable_telemetry", false)
 	ghostEnv.SetDefault("hasura_graphql_server_host", "graphql_engine")
+	ghostEnv.SetDefault("hasura_graphql_server_hostname", "graphql_engine")
 	ghostEnv.SetDefault("hasura_graphql_insecure_skip_tls_verify", true)
 	ghostEnv.SetDefault("hasura_graphql_log_level", "warn")
 	ghostEnv.SetDefault("hasura_graphql_metadata_dir", "/metadata")
