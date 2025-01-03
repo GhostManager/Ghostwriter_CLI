@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Added `HASURA_GRAPHQL_SERVER_HOSTNAME` to the env vars for Ghostwriter v4.3.10+
+* Added a `pg_upgrade` command for upgrading the PostgreSQL database (Closes #11)
 
 ## [0.2.20] - 2024-08-15
 
