@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -459,4 +461,40 @@ func RunDockerComposeRestore(yaml string, restore string) {
 	if backupErr != nil {
 		log.Fatalf("Error trying to restore %s with %s: %v\n", restore, yaml, backupErr)
 	}
+}
+
+// Gets the major version number of the PostgreSQL installation
+func PostgresVersionInstalled(
+	yaml string,
+) int {
+	out, err := RunBasicCmd("docker", []string{"compose", "-f", yaml, "run", "--rm", "postgres", "psql", "--version"})
+	if err != nil {
+		log.Fatalf("Error trying to get postgresql server version: %v\n", err)
+	}
+
+	match := regexp.MustCompile(`(\d+)\.\d+`).FindStringSubmatch(out)
+	if len(match) == 0 {
+		log.Fatalf("Could not find version in string %v", out)
+	}
+
+	majorVersion, err := strconv.Atoi(match[1])
+	if err != nil {
+		log.Fatalf("Could not parse installed Postgres version of %v: %v", match[1], err)
+	}
+	return majorVersion
+}
+
+// Gets the major version number of the PostgreSQL data. If different from the installation version, an upgrade is needed.
+func PostgresVersionForData(
+	yaml string,
+) int {
+	out, err := RunBasicCmd("docker", []string{"compose", "-f", yaml, "run", "--rm", "postgres", "cat", "/var/lib/postgresql/data/PG_VERSION"})
+	if err != nil {
+		log.Fatalf("Error trying to get postgresql data version: %v\n", err)
+	}
+	majorVersion, err := strconv.Atoi(strings.TrimSpace(out))
+	if err != nil {
+		log.Fatalf("Error trying to parse postgresql data version string %v: %v\n", out, err)
+	}
+	return majorVersion
 }
