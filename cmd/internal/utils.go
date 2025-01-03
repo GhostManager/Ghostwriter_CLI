@@ -89,13 +89,9 @@ func RunBasicCmd(name string, args []string) (string, error) {
 	return output, err
 }
 
-// RunCmd executes a given command (“name“) with a list of arguments (“args“)
-// and return stdout and stderr buffers.
-func RunCmd(name string, args []string) error {
-	// If the command is ``docker``, prepend ``compose`` to the args
-	if name == "docker" {
-		args = append([]string{"compose"}, args...)
-	}
+// RunRawCmd executes a given command (“name“) with a list of arguments (“args“)
+// Does not convert docker to docker compose like `RunCmd` does.
+func RunRawCmd(name string, args ...string) error {
 	path, err := exec.LookPath(name)
 	if err != nil {
 		log.Fatalf("`%s` is not installed or not available in the current PATH variable", name)
@@ -107,8 +103,10 @@ func RunCmd(name string, args []string) error {
 	exePath := filepath.Dir(exe)
 	command := exec.Command(path, args...)
 	command.Dir = exePath
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
 
-	stdout, err := command.StdoutPipe()
+	/*stdout, err := command.StdoutPipe()
 	if err != nil {
 		log.Fatalf("Failed to get stdout pipe for running `%s`", name)
 	}
@@ -128,7 +126,7 @@ func RunCmd(name string, args []string) error {
 		for stderrScanner.Scan() {
 			fmt.Printf("%s\n", stderrScanner.Text())
 		}
-	}()
+	}()*/
 	err = command.Start()
 	if err != nil {
 		log.Fatalf("Error trying to start `%s`: %v\n", name, err)
@@ -139,6 +137,15 @@ func RunCmd(name string, args []string) error {
 		return err
 	}
 	return nil
+}
+
+// RunCmd executes a given command (“name“) with a list of arguments (“args“)
+func RunCmd(name string, args []string) error {
+	// If the command is ``docker``, prepend ``compose`` to the args
+	if name == "docker" {
+		args = append([]string{"compose"}, args...)
+	}
+	return RunRawCmd(name, args...)
 }
 
 // GetLocalGhostwriterVersion fetches the local Ghostwriter version from the “VERSION“ file.
