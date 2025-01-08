@@ -103,30 +103,10 @@ func RunRawCmd(name string, args ...string) error {
 	exePath := filepath.Dir(exe)
 	command := exec.Command(path, args...)
 	command.Dir = exePath
+	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 
-	/*stdout, err := command.StdoutPipe()
-	if err != nil {
-		log.Fatalf("Failed to get stdout pipe for running `%s`", name)
-	}
-	stderr, err := command.StderrPipe()
-	if err != nil {
-		log.Fatalf("Failed to get stderr pipe for running `%s`", name)
-	}
-
-	stdoutScanner := bufio.NewScanner(stdout)
-	stderrScanner := bufio.NewScanner(stderr)
-	go func() {
-		for stdoutScanner.Scan() {
-			fmt.Printf("%s\n", stdoutScanner.Text())
-		}
-	}()
-	go func() {
-		for stderrScanner.Scan() {
-			fmt.Printf("%s\n", stderrScanner.Text())
-		}
-	}()*/
 	err = command.Start()
 	if err != nil {
 		log.Fatalf("Error trying to start `%s`: %v\n", name, err)
