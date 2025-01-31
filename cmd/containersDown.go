@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var volumes bool
+
 // containersDownCmd represents the down command
 var containersDownCmd = &cobra.Command{
 	Use:   "down",
@@ -20,15 +22,17 @@ target development containers`,
 
 func init() {
 	containersCmd.AddCommand(containersDownCmd)
+
+	containersDownCmd.PersistentFlags().BoolVar(&volumes, "volumes", false, "Delete data volumes when containers come down")
 }
 
 func containersDown(cmd *cobra.Command, args []string) {
 	docker.EvaluateDockerComposeStatus()
 	if dev {
 		fmt.Println("[+] Bringing down the development environment")
-		docker.RunDockerComposeDown("local.yml")
+		docker.RunDockerComposeDown("local.yml", volumes)
 	} else {
 		fmt.Println("[+] Bringing down the production environment")
-		docker.RunDockerComposeDown("production.yml")
+		docker.RunDockerComposeDown("production.yml", volumes)
 	}
 }
