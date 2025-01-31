@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -138,6 +139,20 @@ func RunDockerComposeInstall(yaml string) {
 	fmt.Println("[+] Ghostwriter is ready to go!")
 	fmt.Printf("[+] You can login as `%s` with this password: %s\n", ghostEnv.GetString("django_superuser_username"), ghostEnv.GetString("django_superuser_password"))
 	fmt.Println("[+] You can get your admin password by running: ghostwriter-cli config get admin_password")
+}
+
+// RunDockerComposeUninstall executes the "docker compose" commands to bring down containers and remove containers,
+// images, and volumes with the specified YAML file ("yaml" parameter).
+func RunDockerComposeUninstall(yaml string) {
+	c := AskForConfirmation("[!] This command removes all containers, images, and volume data for the target environment. Are you sure you want to uninstall?")
+	if !c {
+		os.Exit(0)
+	}
+	uninstallErr := RunCmd(dockerCmd, []string{"-f", yaml, "down", "--rmi", "all", "-v", "--remove-orphans"})
+	if uninstallErr != nil {
+		log.Fatalf("Error trying to uninstall with %s: %v\n", yaml, uninstallErr)
+	}
+	fmt.Println("[+] Uninstall was successful. You can re-install with `./ghostwriter-cli install`.")
 }
 
 // RunDockerComposeUpgrade executes the “docker compose“ commands for re-building or upgrading an
