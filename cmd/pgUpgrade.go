@@ -44,7 +44,7 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	fmt.Print("Press enter to continue, or Ctrl+C to cancel\n")
 	reader.ReadString('\n')
 
-	docker.RunDockerComposeDown(yaml)
+	docker.RunDockerComposeDown(yaml, false)
 
 	fmt.Println("[+] Building Postgres container")
 	docker.RunCmd("docker", []string{"-f", yaml, "build", "postgres"})
