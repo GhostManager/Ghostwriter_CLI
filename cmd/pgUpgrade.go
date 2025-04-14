@@ -61,7 +61,7 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	fmt.Println("[+] Starting old Postgres database")
 	err := docker.RunRawCmd("docker", "run", "-d", "--rm",
 		"--name", "ghostwriter_postgres_upgrade",
-		"--volume", "ghostwriter_local_postgres_data:/var/lib/postgresql/data/",
+		"--volume", fmt.Sprintf("ghostwriter_%s_postgres_data:/var/lib/postgresql/data/", interfix),
 		"--network", "ghostwriter_default",
 		fmt.Sprintf("postgres:%d", dataVersion),
 	)
