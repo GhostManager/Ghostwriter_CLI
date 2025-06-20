@@ -98,6 +98,9 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 		log.Fatalf("Could not stop old postgres server: %v\n", err)
 	}
 
+	// Wait for volume to release
+	time.Sleep(2 * time.Second)
+
 	fmt.Println("[+] Removing old Postgres volume")
 	err = docker.RunRawCmd("docker", "volume", "rm", volumeName)
 	if err != nil {
