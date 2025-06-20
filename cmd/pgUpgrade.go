@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	yaml "github.com/goccy/go-yaml"
 	"github.com/spf13/cobra"
 )
 
@@ -46,6 +48,8 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 
 	docker.RunDockerComposeDown(yaml, false)
 
+	volumeName, networkName := getVolumenAndNetworkName(yaml, interfix)
+
 	fmt.Println("[+] Building Postgres container")
 	docker.RunCmd("docker", []string{"-f", yaml, "build", "postgres"})
 
@@ -61,8 +65,8 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	fmt.Println("[+] Starting old Postgres database")
 	err := docker.RunRawCmd("docker", "run", "-d", "--rm",
 		"--name", "ghostwriter_postgres_upgrade",
-		"--volume", fmt.Sprintf("ghostwriter_%s_postgres_data:/var/lib/postgresql/data/", interfix),
-		"--network", "ghostwriter_default",
+		"--volume", fmt.Sprintf("%s:/var/lib/postgresql/data/", volumeName),
+		"--network", networkName,
 		fmt.Sprintf("postgres:%d", dataVersion),
 	)
 	if err != nil {
@@ -95,7 +99,7 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("[+] Removing old Postgres volume")
-	err = docker.RunRawCmd("docker", "volume", "rm", fmt.Sprintf("ghostwriter_%s_postgres_data", interfix))
+	err = docker.RunRawCmd("docker", "volume", "rm", volumeName)
 	if err != nil {
 		log.Fatalf("Could not delete old postgres db volume: %v\n", err)
 	}
@@ -119,4 +123,34 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("[+] All done")
+}
+
+func getVolumenAndNetworkName(path string, interfix string) (string, string) {
+	volumePath, err := yaml.PathString(fmt.Sprintf("$.volumes.%s_postgres_data.name", interfix))
+	if err != nil {
+		log.Fatalf("Could not parse volume path. This is a bug.")
+	}
+	networkPath, err := yaml.PathString("$.networks.default.name")
+	if err != nil {
+		log.Fatalf("Could not parse network path. This is a bug.")
+	}
+
+	config, err := docker.RunBasicCmd("docker", []string{"compose", "-f", path, "config"})
+	if err != nil {
+		log.Fatalf("Could not get docker config: %s\n", err)
+	}
+
+	var volume string
+	err = volumePath.Read(strings.NewReader(config), &volume)
+	if err != nil {
+		log.Fatalf("Could not get volume path: %s\n", err)
+	}
+
+	var network string
+	err = networkPath.Read(strings.NewReader(config), &network)
+	if err != nil {
+		log.Fatalf("Could not get network path: %s\n", err)
+	}
+
+	return volume, network
 }

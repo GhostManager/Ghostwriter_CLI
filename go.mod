@@ -1,6 +1,8 @@
 module github.com/GhostManager/Ghostwriter_CLI
 
-go 1.17
+go 1.21.0
+
+toolchain go1.21.1
 
 require (
 	github.com/Luzifer/go-dhparam v1.1.0
@@ -15,6 +17,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
