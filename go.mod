@@ -1,8 +1,6 @@
 module github.com/GhostManager/Ghostwriter_CLI
 
-go 1.21.0
-
-toolchain go1.21.1
+go 1.17
 
 require (
 	github.com/Luzifer/go-dhparam v1.1.0
