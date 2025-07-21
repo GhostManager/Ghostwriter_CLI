@@ -243,6 +243,16 @@ func RunDockerComposeDown(yaml string, volumes bool) {
 	}
 }
 
+// RunManagementCmd executes the "docker compose" commands to execute the provided management command ("mgmt" parameter)
+// with the specified YAML file ("yaml" parameter).
+func RunManagementCmd(yaml string, mgmt string) {
+	fmt.Printf("[+] Running `%s` to execute the `%s` management command with `%s...\n", dockerCmd, mgmt, yaml)
+	mgmtErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "django", "python", "manage.py", mgmt})
+	if mgmtErr != nil {
+		log.Fatalf("Error trying to execute the management command with %s: %v\n", yaml, mgmtErr)
+	}
+}
+
 // FetchLogs fetches logs from the container with the specified “name“ label (“containerName“ parameter).
 func FetchLogs(containerName string, lines string) []string {
 	var logs []string
