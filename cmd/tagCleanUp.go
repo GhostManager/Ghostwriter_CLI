@@ -16,7 +16,9 @@ var tagCleanUpCmd = &cobra.Command{
 * remove_orphaned_tags
 * deduplicate_tags
 
-When deduplicating tags, the tag with the oldest primary key value (the first created) will be kept.`,
+When deduplicating tags, the tag with the oldest primary key value (the first created) will be kept.
+
+Note: These commands are only available with Ghostwriter v6 or later.`,
 	Run: tagCleanUp,
 }
 
