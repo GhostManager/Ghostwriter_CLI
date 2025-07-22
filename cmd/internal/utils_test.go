@@ -50,9 +50,9 @@ func TestGetLocalGhostwriterVersion(t *testing.T) {
 	assert.Equal(t, nil, err, "Expected `GetLocalGhostwriterVersion()` to return no error")
 	assert.Equal(
 		t,
-		"Ghostwriter v3.0.0 ( 22 June 2022 )\n",
+		"Ghostwriter v3.0.0 (22 June 2022)\n",
 		version,
-		"Expected `GetLocalGhostwriterVersion()` to return `Ghostwriter v3.0.0 ( 22 June 2022 )\n`",
+		"Expected `GetLocalGhostwriterVersion()` to return `Ghostwriter v3.0.0 (22 June 2022)\n`",
 	)
 }
 
@@ -64,5 +64,16 @@ func TestGetRemoteGhostwriterVersion(t *testing.T) {
 		t,
 		strings.Contains(version, "Ghostwriter v"),
 		"Expected `GetRemoteGhostwriterVersion()` to return a string containing `Ghostwriter v...`",
+	)
+}
+
+func TestGetRemoteGhostwriterCliVersion(t *testing.T) {
+	// Test reading the version data from GitHub's API
+	version, _, err := GetRemoteGhostwriterCliVersion()
+	assert.Equal(t, nil, err, "Expected `GetRemoteGhostwriterCliVersion()` to return no error")
+	assert.True(
+		t,
+		strings.Contains(version, "Ghostwriter CLI v"),
+		"Expected `GetRemoteGhostwriterCliVersion()` to return a string containing `Ghostwriter CLI v...`",
 	)
 }

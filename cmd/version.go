@@ -37,11 +37,11 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 		return remoteErr
 	}
 	if len(config.BuildDate) == 0 {
-		fmt.Fprintf(writer, "\nCurrent Ghostwriter CLI Version\t%s", config.Version)
+		fmt.Fprintf(writer, "\nLocal Version\tGhostwriter CLI %s", config.Version)
 	} else {
-		fmt.Fprintf(writer, "\nCurrent Ghostwriter CLI Version\t%s (%s)", config.Version, config.BuildDate)
+		fmt.Fprintf(writer, "\nLocal Version\tGhostwriter CLI %s (%s)", config.Version, config.BuildDate)
 	}
-	fmt.Fprintf(writer, "\nLatest Stable Release\t%s", remoteVersion)
+	fmt.Fprintf(writer, "\nLatest Release\t%s", remoteVersion)
 	fmt.Fprintf(writer, "Latest Download URL\t%s\n", htmlUrl)
 
 	return nil
