@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// downCmd represents the up command
+// downCmd represents the down command
 var downCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Shortcut for `containers down`",
