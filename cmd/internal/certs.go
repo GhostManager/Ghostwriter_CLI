@@ -21,7 +21,7 @@ const (
 	bitSize = 2048
 )
 
-// Callback function for “go-dhparam“.
+// Callback function for "go-dhparam".
 func dhCallback(r dhparam.GeneratorResult) {
 	switch r {
 	case dhparam.GeneratorFoundPossiblePrime:
@@ -33,7 +33,7 @@ func dhCallback(r dhparam.GeneratorResult) {
 	}
 }
 
-// Generate Diffie-Helman parameters using “go-dhparam“.
+// Generate Diffie-Helman parameters using "go-dhparam".
 func generateDHParam() ([]byte, error) {
 	dh, err := dhparam.Generate(bitSize, dhparam.GeneratorTwo, dhCallback)
 	if err != nil {
@@ -47,7 +47,7 @@ func generateDHParam() ([]byte, error) {
 }
 
 // Generate the Diffie-Helman parameters and then write the file to disk in the
-// output directory (“outputDir“) with the specified “name“.
+// output directory ("outputDir") with the specified "name".
 func writeDHParams(outputDir, name string) error {
 	fileName := filepath.Join(outputDir, name+".pem")
 	if FileExists(fileName) {
@@ -66,7 +66,7 @@ func writeDHParams(outputDir, name string) error {
 	return nil
 }
 
-// Check if the SSL certificates are present in the specified “certPath“ and “keyPath“.
+// Check if the SSL certificates are present in the specified "certPath" and "keyPath".
 func checkCerts(certPath string, keyPath string) error {
 	if _, err := os.Stat(certPath); os.IsNotExist(err) {
 		return err

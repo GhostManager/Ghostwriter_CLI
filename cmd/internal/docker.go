@@ -33,7 +33,7 @@ var (
 	dockerCmd = "docker"
 )
 
-// Container is a custom type for storing container information similar to output from “docker containers ls“.
+// Container is a custom type for storing container information similar to output from "docker containers ls".
 type Container struct {
 	ID     string
 	Image  string
@@ -60,7 +60,7 @@ func (c Containers) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-// EvaluateDockerComposeStatus determines if the host has the “docker compose“ plugin or the “docker compose“
+// EvaluateDockerComposeStatus determines if the host has the "docker compose" plugin or the "docker compose"
 // script installed and set the global `dockerCmd` variable.
 func EvaluateDockerComposeStatus() error {
 	fmt.Println("[+] Checking the status of Docker and the Compose plugin...")
@@ -99,8 +99,8 @@ func EvaluateDockerComposeStatus() error {
 	return nil
 }
 
-// RunDockerComposeInstall executes the “docker compose“ commands for a first-time installation with
-// the specified YAML file (“yaml“ parameter).
+// RunDockerComposeInstall executes the "docker compose" commands for a first-time installation with
+// the specified YAML file ("yaml" parameter).
 func RunDockerComposeInstall(yaml string) {
 	buildErr := RunCmd(dockerCmd, []string{"-f", yaml, "build"})
 	if buildErr != nil {
@@ -155,8 +155,8 @@ func RunDockerComposeUninstall(yaml string) {
 	fmt.Println("[+] Uninstall was successful. You can re-install with `./ghostwriter-cli install`.")
 }
 
-// RunDockerComposeUpgrade executes the “docker compose“ commands for re-building or upgrading an
-// installation with the specified YAML file (“yaml“ parameter).
+// RunDockerComposeUpgrade executes the "docker compose" commands for re-building or upgrading an
+// installation with the specified YAML file ("yaml" parameter).
 func RunDockerComposeUpgrade(yaml string, skipseed bool) {
 	fmt.Printf("[+] Running `%s` commands to build containers with %s...\n", dockerCmd, yaml)
 	downErr := RunCmd(dockerCmd, []string{"-f", yaml, "down"})
@@ -189,8 +189,8 @@ func RunDockerComposeUpgrade(yaml string, skipseed bool) {
 	fmt.Println("[+] All containers have been built!")
 }
 
-// RunDockerComposeStart executes the “docker compose“ commands to start the environment with
-// the specified YAML file (“yaml“ parameter).
+// RunDockerComposeStart executes the "docker compose" commands to start the environment with
+// the specified YAML file ("yaml" parameter).
 func RunDockerComposeStart(yaml string) {
 	fmt.Printf("[+] Running `%s` to restart containers with %s...\n", dockerCmd, yaml)
 	startErr := RunCmd(dockerCmd, []string{"-f", yaml, "start"})
@@ -199,8 +199,8 @@ func RunDockerComposeStart(yaml string) {
 	}
 }
 
-// RunDockerComposeStop executes the “docker compose“ commands to stop all services in the environment with
-// the specified YAML file (“yaml“ parameter).
+// RunDockerComposeStop executes the "docker compose" commands to stop all services in the environment with
+// the specified YAML file ("yaml" parameter).
 func RunDockerComposeStop(yaml string) {
 	fmt.Printf("[+] Running `%s` to stop services with %s...\n", dockerCmd, yaml)
 	stopErr := RunCmd(dockerCmd, []string{"-f", yaml, "stop"})
@@ -209,8 +209,8 @@ func RunDockerComposeStop(yaml string) {
 	}
 }
 
-// RunDockerComposeRestart executes the “docker compose“ commands to restart the environment with
-// the specified YAML file (“yaml“ parameter).
+// RunDockerComposeRestart executes the "docker compose" commands to restart the environment with
+// the specified YAML file ("yaml" parameter).
 func RunDockerComposeRestart(yaml string) {
 	fmt.Printf("[+] Running `%s` to restart containers with %s...\n", dockerCmd, yaml)
 	startErr := RunCmd(dockerCmd, []string{"-f", yaml, "restart"})
@@ -219,8 +219,8 @@ func RunDockerComposeRestart(yaml string) {
 	}
 }
 
-// RunDockerComposeUp executes the “docker compose“ commands to bring up the environment with
-// the specified YAML file (“yaml“ parameter).
+// RunDockerComposeUp executes the "docker compose" commands to bring up the environment with
+// the specified YAML file ("yaml" parameter).
 func RunDockerComposeUp(yaml string) {
 	fmt.Printf("[+] Running `%s` to bring up the containers with %s...\n", dockerCmd, yaml)
 	upErr := RunCmd(dockerCmd, []string{"-f", yaml, "up", "-d"})
@@ -253,7 +253,7 @@ func RunManagementCmd(yaml string, mgmt string) {
 	}
 }
 
-// FetchLogs fetches logs from the container with the specified “name“ label (“containerName“ parameter).
+// FetchLogs fetches logs from the container with the specified "name" label ("containerName" parameter).
 func FetchLogs(containerName string, lines string) []string {
 	var logs []string
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -298,7 +298,7 @@ func FetchLogs(containerName string, lines string) []string {
 	return logs
 }
 
-// GetRunning determines if the container with the specified “name“ label (“containerName“ parameter) is running.
+// GetRunning determines if the container with the specified "name" label ("containerName" parameter) is running.
 func GetRunning() Containers {
 	var running Containers
 
@@ -325,7 +325,7 @@ func GetRunning() Containers {
 	return running
 }
 
-// Determine if the container with the specified “name“ label (“containerName“ parameter) is running.
+// Determine if the container with the specified "name" label ("containerName" parameter) is running.
 func isServiceRunning(containerName string) bool {
 	containers := GetRunning()
 	for _, container := range containers {
@@ -393,7 +393,7 @@ func waitForDjango() bool {
 	}
 }
 
-// RunGhostwriterTests runs Ghostwriter's unit and integration tests via “docker compose“.
+// RunGhostwriterTests runs Ghostwriter's unit and integration tests via "docker compose".
 // The tests are run in the development environment and assume certain values
 // will be set for test conditions, so the .env file is temporarily adjusted
 // during the test run.
@@ -462,8 +462,8 @@ func CheckDockerHealth(dev bool) (HealthIssues, error) {
 	return issues, nil
 }
 
-// RunDockerComposeBackup executes the “docker compose“ command to back up the PostgreSQL database in the environment
-// from the specified YAML file (“yaml“ parameter).
+// RunDockerComposeBackup executes the "docker compose" command to back up the PostgreSQL database in the environment
+// from the specified YAML file ("yaml" parameter).
 func RunDockerComposeBackup(yaml string) {
 	fmt.Printf("[+] Running `%s` to back up the PostgreSQL database with %s...\n", dockerCmd, yaml)
 	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "backup"})
@@ -472,8 +472,8 @@ func RunDockerComposeBackup(yaml string) {
 	}
 }
 
-// RunDockerComposeBackups executes the “docker compose“ command to list available PostgreSQL database backups in the
-// environment from the specified YAML file (“yaml“ parameter).
+// RunDockerComposeBackups executes the "docker compose" command to list available PostgreSQL database backups in the
+// environment from the specified YAML file ("yaml" parameter).
 func RunDockerComposeBackups(yaml string) {
 	fmt.Printf("[+] Running `%s` to list avilable PostgreSQL database backup files with %s...\n", dockerCmd, yaml)
 	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "backups"})
@@ -482,8 +482,8 @@ func RunDockerComposeBackups(yaml string) {
 	}
 }
 
-// RunDockerComposeRestore executes the “docker compose“ command to restore a PostgreSQL database backup in the
-// environment from the specified YAML file (“yaml“ parameter).
+// RunDockerComposeRestore executes the "docker compose" command to restore a PostgreSQL database backup in the
+// environment from the specified YAML file ("yaml" parameter).
 func RunDockerComposeRestore(yaml string, restore string) {
 	fmt.Printf("[+] Running `%s` to restore the PostgreSQL database backup file %s with %s...\n", dockerCmd, restore, yaml)
 	backupErr := RunCmd(dockerCmd, []string{"-f", yaml, "run", "--rm", "postgres", "restore", restore})

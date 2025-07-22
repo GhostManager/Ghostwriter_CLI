@@ -41,7 +41,7 @@ func (c HealthIssues) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-// GetCwdFromExe gets the current working directory based on “ghostwriter-cli“ location.
+// GetCwdFromExe gets the current working directory based on "ghostwriter-cli" location.
 func GetCwdFromExe() string {
 	exe, err := os.Executable()
 	if err != nil {
@@ -74,22 +74,22 @@ func DirExists(path string) bool {
 	return info.IsDir()
 }
 
-// CheckPath checks the $PATH environment variable for a given “cmd“ and return a “bool“
+// CheckPath checks the $PATH environment variable for a given "cmd" and return a "bool"
 // indicating if it exists.
 func CheckPath(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
 }
 
-// RunBasicCmd executes a given command (“name“) with a list of arguments (“args“)
-// and return a “string“ with the output.
+// RunBasicCmd executes a given command ("name") with a list of arguments ("args")
+// and return a "string" with the output.
 func RunBasicCmd(name string, args []string) (string, error) {
 	out, err := exec.Command(name, args...).Output()
 	output := string(out[:])
 	return output, err
 }
 
-// RunRawCmd executes a given command (“name“) with a list of arguments (“args“)
+// RunRawCmd executes a given command ("name") with a list of arguments ("args")
 // Does not convert docker to docker compose like `RunCmd` does.
 func RunRawCmd(name string, args ...string) error {
 	path, err := exec.LookPath(name)
@@ -119,7 +119,7 @@ func RunRawCmd(name string, args ...string) error {
 	return nil
 }
 
-// RunCmd executes a given command (“name“) with a list of arguments (“args“)
+// RunCmd executes a given command ("name") with a list of arguments ("args")
 func RunCmd(name string, args []string) error {
 	// If the command is ``docker``, prepend ``compose`` to the args
 	if name == "docker" {
@@ -128,7 +128,7 @@ func RunCmd(name string, args []string) error {
 	return RunRawCmd(name, args...)
 }
 
-// GetLocalGhostwriterVersion fetches the local Ghostwriter version from the “VERSION“ file.
+// GetLocalGhostwriterVersion fetches the local Ghostwriter version from the "VERSION" file.
 func GetLocalGhostwriterVersion() (string, error) {
 	var output string
 
@@ -192,8 +192,8 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	return output, nil
 }
 
-// Contains checks if a slice of strings (“slice“ parameter) contains a given
-// string (“search“ parameter).
+// Contains checks if a slice of strings ("slice" parameter) contains a given
+// string ("search" parameter).
 func Contains(slice []string, target string) bool {
 	for _, item := range slice {
 		if item == target {

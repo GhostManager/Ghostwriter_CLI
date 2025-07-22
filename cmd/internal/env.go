@@ -122,7 +122,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
 }
 
-// WriteGhostwriterEnvironmentVariables writes the environment variables to the “.env“ file.
+// WriteGhostwriterEnvironmentVariables writes the environment variables to the ".env" file.
 func WriteGhostwriterEnvironmentVariables() {
 	c := ghostEnv.AllSettings()
 	// To make it easier to read and look at, get all the keys, sort them, and display variables in order
@@ -152,7 +152,7 @@ func WriteGhostwriterEnvironmentVariables() {
 // ParseGhostwriterEnvironmentVariables attempts to find and open an existing .env file or create a new one.
 // If an .env file is found, load it into the Viper configuration.
 // If an .env file is not found, create a new one with default values.
-// Then write the final file with “WriteGhostwriterEnvironmentVariables()“.
+// Then write the final file with "WriteGhostwriterEnvironmentVariables()".
 func ParseGhostwriterEnvironmentVariables() {
 	setGhostwriterConfigDefaultValues()
 	ghostEnv.SetConfigName(".env")
@@ -197,12 +197,12 @@ func SetDevMode() {
 	WriteGhostwriterEnvironmentVariables()
 }
 
-// Convert the environment variable (“env“) to a slice of strings.
+// Convert the environment variable ("env") to a slice of strings.
 func splitVariable(env string) []string {
 	return strings.Split(ghostEnv.GetString(env), " ")
 }
 
-// Remove one or more matches for “item“ from a “slice“ of strings.
+// Remove one or more matches for "item" from a "slice" of strings.
 func removeItem(slice []string, item string) []string {
 	counter := 0
 	// We loop through the entire list in case an exact match appears more than once
@@ -216,7 +216,7 @@ func removeItem(slice []string, item string) []string {
 	return slice
 }
 
-// Append a “host“ to the given environment variable (“env“).
+// Append a "host" to the given environment variable ("env").
 func appendHost(env string, host string) {
 	s := splitVariable(env)
 	// Append the new host only if it's not already in the list
@@ -228,7 +228,7 @@ func appendHost(env string, host string) {
 	}
 }
 
-// Remove a “host“ from the given environment variable (“env“).
+// Remove a "host" from the given environment variable ("env").
 func removeHost(env string, host string) {
 	s := splitVariable(env)
 	s = removeItem(s, host)
