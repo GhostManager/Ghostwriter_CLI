@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * This command runs the Django management commands to remove orphaned tags and perform tag deduplication
 * Added alias commands for `containers up` and `containers down` to make it easier to run `up` and `down`
 
+### Changed
+
+* The `version` command now pulls the latest stable release version information for comparison and provides a download link 
+
 ## [0.2.24] - 2025-06-25
 
 ### Changed
