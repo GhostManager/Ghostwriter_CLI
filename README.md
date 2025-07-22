@@ -21,16 +21,25 @@ Usage:
   ghostwriter-cli [command]
 
 Available Commands:
+  backup      Creates a backup of the PostgreSQL database
   completion  Generate the autocompletion script for the specified shell
   config      Display or adjust the configuration
-  containers  Manage Ghostwriter containers with subcommands.
+  containers  Manage Ghostwriter containers with subcommands
+  down        Shortcut for `containers down`
+  gencert     Create a new SSL/TLS certificate and DH param file for the Nginx web server
+  healthcheck Check the health of Ghostwriter's services
   help        Help about any command
-  install     Builds containers and performs first-time setup of Ghostwriter.
-  logs        Fetch logs for Ghostwriter services.
-  running     Print a list of running Ghostwriter services.
-  test        Runs Ghostwriter's unit tests in the development environment.
-  update      Displays version information for Ghostwriter.
-  version     Displays Ghostwriter CLI's version information.
+  install     Builds containers and performs first-time setup of Ghostwriter
+  logs        Fetch logs for Ghostwriter services
+  pg-upgrade  Upgrades the PostgreSQL database
+  restore     Restores the specified PostgreSQL database backup
+  running     Print a list of running Ghostwriter services
+  tagcleanup  Run Django's tag cleanup commands to deduplicate tags and remove orphaned tags
+  test        Runs Ghostwriter's unit tests in the development environment
+  uninstall   Remove all Ghostwriter containers, images, and volume data
+  up          Shortcut for `containers up`
+  update      Displays version information for Ghostwriter
+  version     Displays Ghostwriter CLI's version information
 
 Flags:
       --dev    Target the development environment for "install" and "containers" commands.
