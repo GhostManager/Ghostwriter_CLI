@@ -150,7 +150,7 @@ func GetLocalGhostwriterVersion() (string, error) {
 			return output, err
 		}
 
-		output = fmt.Sprintf("Ghostwriter %s ( %s )\n", lines[0], lines[1])
+		output = fmt.Sprintf("Ghostwriter %s (%s)\n", lines[0], lines[1])
 	} else {
 		output = "Could not read Ghostwriter's `VERSION` file\n"
 	}
@@ -185,11 +185,46 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	publishedAt := githubJson["published_at"].(string)
 	date, _ := time.Parse(time.RFC3339, publishedAt)
 	output = fmt.Sprintf(
-		"Ghostwriter %s ( %02d %s %d )\n",
+		"Ghostwriter %s (%02d %s %d)\n",
 		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
 	)
 
 	return output, nil
+}
+
+// GetRemoteGhostwriterCliVersion fetches the latest Ghostwriter CLI version from GitHub's API.
+func GetRemoteGhostwriterCliVersion() (string, string, error) {
+	var output string
+
+	baseUrl := "https://api.github.com/repos/GhostManager/Ghostwriter_CLI/releases/latest"
+	client := http.Client{Timeout: time.Second * 2}
+	resp, err := client.Get(baseUrl)
+	if err != nil {
+		return "", "", err
+	}
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return "", "", readErr
+	}
+
+	var githubJson map[string]interface{}
+	jsonErr := json.Unmarshal(body, &githubJson)
+	if jsonErr != nil {
+		return "", "", jsonErr
+	}
+
+	publishedAt := githubJson["published_at"].(string)
+	date, _ := time.Parse(time.RFC3339, publishedAt)
+	output = fmt.Sprintf(
+		"%s (%02d %s %d)\n",
+		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
+	)
+	url := githubJson["html_url"].(string)
+
+	return output, url, nil
 }
 
 // Contains checks if a slice of strings ("slice" parameter) contains a given
