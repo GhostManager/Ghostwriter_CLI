@@ -37,12 +37,15 @@ func compareVersions(cmd *cobra.Command, args []string) error {
 		return localErr
 	}
 
-	remoteVersion, remoteErr := utils.GetRemoteGhostwriterVersion()
+	fmt.Fprintf(writer, "\nLocal Version\t%s\n", localVersion)
+
+	remoteVersion, htmlUrl, remoteErr := utils.GetRemoteVersion("GhostManager", "Ghostwriter")
 	if remoteErr != nil {
 		return remoteErr
 	}
-	fmt.Fprintf(writer, "\nLocal Ghostwriter Version\t%s\n", localVersion)
-	fmt.Fprintf(writer, "Latest Stable Release\t%s\n", remoteVersion)
+
+	fmt.Fprintf(writer, "Latest Release\t%s\n", remoteVersion)
+	fmt.Fprintf(writer, "Latest Release URL\t%s\n", htmlUrl)
 
 	return nil
 }
