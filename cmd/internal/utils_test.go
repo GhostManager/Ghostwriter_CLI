@@ -38,42 +38,31 @@ func TestGetLocalGhostwriterVersion(t *testing.T) {
 	// Mock the Ghostwriter VERSION file
 	versionFile := filepath.Join(GetCwdFromExe(), "VERSION")
 	f, err := os.Create(versionFile)
-	assert.Equal(t, nil, err, "Expected `os.Create()` to return no error")
+	assert.NoError(t, err, "Expected `os.Create()` to return no error")
 
 	defer f.Close()
 
 	_, writeErr := f.WriteString("v3.0.0\n22 June 2022")
-	assert.Equal(t, nil, writeErr, "Expected `f.WriteString()` to return no error")
+	assert.NoError(t, writeErr, "Expected `f.WriteString()` to return no error")
 
 	// Test reading the version data from the file
 	version, err := GetLocalGhostwriterVersion()
-	assert.Equal(t, nil, err, "Expected `GetLocalGhostwriterVersion()` to return no error")
+	assert.NoError(t, err, "Expected `GetLocalGhostwriterVersion()` to return no error")
 	assert.Equal(
 		t,
-		"Ghostwriter v3.0.0 (22 June 2022)\n",
+		"Ghostwriter v3.0.0 (22 June 2022)",
 		version,
-		"Expected `GetLocalGhostwriterVersion()` to return `Ghostwriter v3.0.0 (22 June 2022)\n`",
+		"Expected `GetLocalGhostwriterVersion()` to return `Ghostwriter v3.0.0 (22 June 2022)`",
 	)
 }
 
-func TestGetRemoteGhostwriterVersion(t *testing.T) {
+func TestGetRemoteVersion(t *testing.T) {
 	// Test reading the version data from GitHub's API
-	version, err := GetRemoteGhostwriterVersion()
-	assert.Equal(t, nil, err, "Expected `GetRemoteGhostwriterVersion()` to return no error")
+	version, _, err := GetRemoteVersion("GhostManager", "Ghostwriter")
+	assert.NoError(t, err, "Expected `GetRemoteVersion()` to return no error")
 	assert.True(
 		t,
 		strings.Contains(version, "Ghostwriter v"),
-		"Expected `GetRemoteGhostwriterVersion()` to return a string containing `Ghostwriter v...`",
-	)
-}
-
-func TestGetRemoteGhostwriterCliVersion(t *testing.T) {
-	// Test reading the version data from GitHub's API
-	version, _, err := GetRemoteGhostwriterCliVersion()
-	assert.Equal(t, nil, err, "Expected `GetRemoteGhostwriterCliVersion()` to return no error")
-	assert.True(
-		t,
-		strings.Contains(version, "Ghostwriter CLI v"),
-		"Expected `GetRemoteGhostwriterCliVersion()` to return a string containing `Ghostwriter CLI v...`",
+		"Expected `GetRemoteVersion()` to return a string containing `Ghostwriter v...`",
 	)
 }

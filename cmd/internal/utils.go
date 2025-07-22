@@ -152,10 +152,9 @@ func GetLocalGhostwriterVersion() (string, error) {
 
 		output = fmt.Sprintf("Ghostwriter %s (%s)", lines[0], lines[1])
 	} else {
-		output = "Could not read Ghostwriter's `VERSION` file\n"
+		output = "Could not read Ghostwriter's `VERSION` file"
 	}
 
-	output = strings.TrimRight(output, "\n")
 	return output, nil
 }
 
@@ -164,7 +163,7 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 	var output string
 
 	baseUrl := "https://api.github.com/repos/" + owner + "/" + repository + "/releases/latest"
-	client := http.Client{Timeout: time.Second * 2}
+	client := http.Client{Timeout: time.Second * 10}
 	resp, err := client.Get(baseUrl)
 	if err != nil {
 		return "", "", err
@@ -196,7 +195,7 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 	}
 	date, parseErr := time.Parse(time.RFC3339, publishedAt)
 	if parseErr != nil {
-		output = fmt.Sprintf("Ghostwriter CLI (published at: %s)", publishedAt)
+		output = fmt.Sprintf("%s (published at: %s)", repository, publishedAt)
 	} else {
 		tagNameRaw, ok := githubJson["tag_name"]
 		if !ok {
@@ -207,8 +206,8 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 			return "", "", fmt.Errorf("'tag_name' is not a string")
 		}
 		output = fmt.Sprintf(
-			"Ghostwriter CLI %s (%02d %s %d)",
-			tagName, date.Day(), date.Month().String(), date.Year(),
+			"%s %s (%02d %s %d)",
+			repository, tagName, date.Day(), date.Month().String(), date.Year(),
 		)
 	}
 
@@ -220,7 +219,6 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 	if !ok {
 		return "", "", fmt.Errorf("'html_url' is not a string")
 	}
-	output = strings.TrimRight(output, "\n")
 	return output, url, nil
 }
 
