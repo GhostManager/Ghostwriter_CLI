@@ -150,7 +150,7 @@ func GetLocalGhostwriterVersion() (string, error) {
 			return output, err
 		}
 
-		output = fmt.Sprintf("Ghostwriter %s (%s)\n", lines[0], lines[1])
+		output = fmt.Sprintf("Ghostwriter %s (%s)", lines[0], lines[1])
 	} else {
 		output = "Could not read Ghostwriter's `VERSION` file\n"
 	}
@@ -185,7 +185,7 @@ func GetRemoteGhostwriterVersion() (string, error) {
 	publishedAt := githubJson["published_at"].(string)
 	date, _ := time.Parse(time.RFC3339, publishedAt)
 	output = fmt.Sprintf(
-		"Ghostwriter %s (%02d %s %d)\n",
+		"Ghostwriter %s (%02d %s %d)",
 		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
 	)
 
@@ -219,7 +219,7 @@ func GetRemoteGhostwriterCliVersion() (string, string, error) {
 	publishedAt := githubJson["published_at"].(string)
 	date, _ := time.Parse(time.RFC3339, publishedAt)
 	output = fmt.Sprintf(
-		"Ghostwriter CLI %s (%02d %s %d)\n",
+		"Ghostwriter CLI %s (%02d %s %d)",
 		githubJson["tag_name"], date.Day(), date.Month().String(), date.Year(),
 	)
 	url := githubJson["html_url"].(string)

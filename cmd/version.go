@@ -41,7 +41,7 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 	} else {
 		fmt.Fprintf(writer, "\nLocal Version\tGhostwriter CLI %s (%s)", config.Version, config.BuildDate)
 	}
-	fmt.Fprintf(writer, "\nLatest Release\t%s", remoteVersion)
+	fmt.Fprintf(writer, "\nLatest Release\t%s\n", remoteVersion)
 	fmt.Fprintf(writer, "Latest Download URL\t%s\n", htmlUrl)
 
 	return nil

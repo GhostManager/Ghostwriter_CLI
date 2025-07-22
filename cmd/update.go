@@ -41,8 +41,8 @@ func compareVersions(cmd *cobra.Command, args []string) error {
 	if remoteErr != nil {
 		return remoteErr
 	}
-	fmt.Fprintf(writer, "\nLocal Ghostwriter Version\t%s", localVersion)
-	fmt.Fprintf(writer, "Latest Stable Release\t%s", remoteVersion)
+	fmt.Fprintf(writer, "\nLocal Ghostwriter Version\t%s\n", localVersion)
+	fmt.Fprintf(writer, "Latest Stable Release\t%s\n", remoteVersion)
 
 	return nil
 }
