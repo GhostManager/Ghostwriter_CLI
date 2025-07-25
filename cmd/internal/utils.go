@@ -205,9 +205,10 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 		if !ok {
 			return "", "", fmt.Errorf("'tag_name' is not a string")
 		}
+		formatted := date.Format("02 Jan 2006")
 		output = fmt.Sprintf(
-			"%s %s (%02d %s %d)",
-			repository, tagName, date.Day(), date.Month().String(), date.Year(),
+			"%s %s (%s)",
+			repository, tagName, formatted,
 		)
 	}
 
