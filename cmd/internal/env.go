@@ -84,6 +84,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("postgres_db", "ghostwriter")
 	ghostEnv.SetDefault("postgres_user", "postgres")
 	ghostEnv.SetDefault("postgres_password", GenerateRandomPassword(32, true))
+	ghostEnv.SetDefault("POSTGRES_CONN_MAX_AGE", 0)
 
 	// Redis configuration
 	ghostEnv.SetDefault("redis_host", "redis")
