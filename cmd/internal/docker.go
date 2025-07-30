@@ -23,11 +23,13 @@ var (
 		"ghostwriter_production_django", "ghostwriter_production_nginx",
 		"ghostwriter_production_redis", "ghostwriter_production_postgres",
 		"ghostwriter_production_graphql", "ghostwriter_production_queue",
+		"ghostwriter_production_collab_server",
 	}
 	devImages = []string{
 		"ghostwriter_local_django", "ghostwriter_local_redis",
 		"ghostwriter_local_postgres", "ghostwriter_local_graphql",
-		"ghostwriter_local_queue",
+		"ghostwriter_local_queue", "ghostwriter_collab_server",
+		"ghostwriter_frontend",
 	}
 	// Default root command for Docker commands
 	dockerCmd = "docker"
