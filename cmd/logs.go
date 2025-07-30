@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -14,12 +15,14 @@ var logsCmd = &cobra.Command{
 
 Valid names are:
 
+* collab
 * django
+* frontend (dev only)
+* graphql
 * nginx
 * postgres
-* redis
-* graphql
-* queue`,
+* queue
+* redis`,
 	Args: cobra.ExactArgs(1),
 	Run:  readLogs,
 }
