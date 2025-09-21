@@ -110,7 +110,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("hasura_graphql_server_port", 8080)
 
 	// Docker & Django health check configuration
-	ghostEnv.SetDefault("healthcheck_disk_usage_max", 3)
+	ghostEnv.SetDefault("healthcheck_disk_usage_max", 90)
 	ghostEnv.SetDefault("healthcheck_interval", "300s")
 	ghostEnv.SetDefault("healthcheck_mem_min", 100)
 	ghostEnv.SetDefault("healthcheck_retries", 3)
