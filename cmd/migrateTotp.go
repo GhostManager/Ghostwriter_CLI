@@ -57,7 +57,4 @@ func migrateTotp(cmd *cobra.Command, args []string){
 	}
 
 	fmt.Println("[+] TOTP secrets and migration codes migration complete")
-	fmt.Println("Starting services...")
-	docker.RunDockerComposeUp(yamlFile)
-	fmt.Println("Services started.")
 }
