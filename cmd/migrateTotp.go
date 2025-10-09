@@ -42,12 +42,7 @@ func migrateTotp(cmd *cobra.Command, args []string){
 	docker.RunDockerComposeDown(yamlFile, false)
 	fmt.Println("[+] migrating TOTP secrets and migration codes")
 
-
-	err := docker.RunCmd("docker", []string{"-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "makemigrations"})
-	if err != nil {
-		log.Fatalf("Error occurred while running makemigrations: %v", err)
-	}
-	err = docker.RunCmd("docker", []string{"-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate"})
+	err := docker.RunCmd("docker", []string{"-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate"})
 	if err != nil {
 		log.Fatalf("Error occurred while running migrate: %v", err)
 	}
