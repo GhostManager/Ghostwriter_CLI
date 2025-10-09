@@ -48,7 +48,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("ipythondir", "/app/.ipython")
 
 	// Django configuration
-	ghostEnv.SetDefault("django_2fa_always_reveal_backup_tokens", false)
+	ghostEnv.SetDefault("django_mfa_always_reveal_backup_tokens", false)
 	ghostEnv.SetDefault("django_account_allow_registration", false)
 	ghostEnv.SetDefault("django_account_email_verification", "none")
 	ghostEnv.SetDefault("django_admin_url", "admin/")
