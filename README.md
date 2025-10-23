@@ -1,6 +1,6 @@
 # Ghostwriter_CLI
 
-[![Go](https://img.shields.io/badge/Go-1.18-9cf)](.) [![License](https://img.shields.io/badge/License-BSD3-darkred.svg)](.)
+[![Go](https://img.shields.io/badge/Go-1.24-9cf)](.) [![License](https://img.shields.io/badge/License-BSD3-darkred.svg)](.)
 
 ![GitHub Release (Latest by Date)](https://img.shields.io/github/v/release/GhostManager/Ghostwriter_CLI?label=Latest%20Release)
 ![GitHub Release Date](https://img.shields.io/github/release-date/ghostmanager/Ghostwriter_CLI?label=Release%20Date)
@@ -8,6 +8,8 @@
 [![CodeFactor](https://img.shields.io/codefactor/grade/github/GhostManager/Ghostwriter_CLI?label=Code%20Quality)](.)
 
 Golang code for the `ghostwriter-cli` binary in [Ghostwriter](https://github.com/GhostManager/Ghostwriter). This binary provides control for various aspects of Ghostwriter's configuration.
+
+Ghostwriter CLI is compatible with Docker Compose v2 and Podman. If using Podman, configure [Docker compatibility mode](https://podman-desktop.io/docs/migrating-from-docker/managing-docker-compatibility).
 
 ## Usage
 
@@ -21,25 +23,27 @@ Usage:
   ghostwriter-cli [command]
 
 Available Commands:
-  backup      Creates a backup of the PostgreSQL database
-  completion  Generate the autocompletion script for the specified shell
-  config      Display or adjust the configuration
-  containers  Manage Ghostwriter containers with subcommands
-  down        Shortcut for `containers down`
-  gencert     Create a new SSL/TLS certificate and DH param file for the Nginx web server
-  healthcheck Check the health of Ghostwriter's services
-  help        Help about any command
-  install     Builds containers and performs first-time setup of Ghostwriter
-  logs        Fetch logs for Ghostwriter services
-  pg-upgrade  Upgrades the PostgreSQL database
-  restore     Restores the specified PostgreSQL database backup
-  running     Print a list of running Ghostwriter services
-  tagcleanup  Run Django's tag cleanup commands to deduplicate tags and remove orphaned tags
-  test        Runs Ghostwriter's unit tests in the development environment
-  uninstall   Remove all Ghostwriter containers, images, and volume data
-  up          Shortcut for `containers up`
-  update      Displays version information for Ghostwriter
-  version     Displays Ghostwriter CLI's version information
+  backup       Creates a backup of the PostgreSQL database
+  completion   Generate the autocompletion script for the specified shell
+  config       Display or adjust the configuration
+  containers   Manage Ghostwriter containers with subcommands
+  down         Shortcut for `containers down`
+  gencert      Create a new SSL/TLS certificate and DH param file for the Nginx web server
+  healthcheck  Check the health of Ghostwriter's services
+  help         Help about any command
+  install      Builds containers and performs first-time setup of Ghostwriter
+  logs         Fetch logs for Ghostwriter services
+  migrate_totp Migrate TOTP secrets and migration codes from Ghostwriter <=v6 to v6.1+
+  pg-upgrade   Upgrades the PostgreSQL database
+  restore      Restores the specified PostgreSQL database backup
+  running      Print a list of running Ghostwriter services
+  tagcleanup   Run Django's tag cleanup commands to deduplicate tags and remove orphaned tags
+  test         Runs Ghostwriter's unit tests in the development environment
+  uninstall    Remove all Ghostwriter containers, images, and volume data
+  up           Shortcut for `containers up`
+  update       Displays version information for Ghostwriter
+  version      Displays Ghostwriter CLI's version information
+
 
 Flags:
       --dev    Target the development environment for "install" and "containers" commands.
