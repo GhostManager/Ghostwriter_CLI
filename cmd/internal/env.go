@@ -48,8 +48,9 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("ipythondir", "/app/.ipython")
 
 	// Django configuration
-	ghostEnv.SetDefault("django_2fa_always_reveal_backup_tokens", false)
+	ghostEnv.SetDefault("django_mfa_always_reveal_backup_tokens", false)
 	ghostEnv.SetDefault("django_account_allow_registration", false)
+	ghostEnv.SetDefault("django_account_reauthentication_timeout", 32400)
 	ghostEnv.SetDefault("django_account_email_verification", "none")
 	ghostEnv.SetDefault("django_admin_url", "admin/")
 	ghostEnv.SetDefault("django_allowed_hosts", "localhost 127.0.0.1 django nginx host.docker.internal ghostwriter.local")

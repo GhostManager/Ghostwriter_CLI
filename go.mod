@@ -2,6 +2,8 @@ module github.com/GhostManager/Ghostwriter_CLI
 
 go 1.24.0
 
+toolchain go1.24.8
+
 require (
 	github.com/Luzifer/go-dhparam v1.1.0
 	github.com/docker/docker v20.10.27+incompatible
