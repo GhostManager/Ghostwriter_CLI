@@ -31,7 +31,7 @@ var (
 		"ghostwriter_local_queue", "ghostwriter_local_collab_server",
 		"ghostwriter_local_frontend",
 	}
-	// Default root command for Docker commands
+	// Default root command for Docker commands, will fallback to Podman if Docker is not found
 	dockerCmd = "docker"
 )
 
@@ -69,17 +69,27 @@ func EvaluateDockerComposeStatus() error {
 	// Check for ``docker`` first because it's required for everything to come
 	dockerExists := CheckPath("docker")
 	if !dockerExists {
-		log.Fatalln("Docker is not installed on this system, so please install Docker and try again")
+		podmanExists := CheckPath("podman")
+		if podmanExists {
+			fmt.Println("[+] Docker is not installed, but Podman is installed. Using Podman as a Docker alternative.")
+			dockerCmd = "podman"
+		} else {
+			log.Fatalln("Neither Docker nor Podman is installed on this system, so please install Docker or Podman (in Docker compatibility mode) and try again.")
+		}
 	}
 
 	// Check if the Docker Engine is running
-	_, engineErr := RunBasicCmd("docker", []string{"info"})
+	_, engineErr := RunBasicCmd(dockerCmd, []string{"info"})
 	if engineErr != nil {
-		log.Fatalln("Docker is installed on this system, but the daemon is not running")
+		if strings.Contains(strings.ToLower(engineErr.Error()), "permission denied") {
+			log.Fatalf("%s is installed, but you don't have permission to talk to the daemon (Try running with sudo or adjusting your group membership)", dockerCmd)
+		} else {
+			log.Fatalf("%s is installed on this system, but the daemon may not be running", dockerCmd)
+		}
 	}
 
 	// Check for the ``compose`` plugin as our first choice
-	_, composeErr := RunBasicCmd("docker", []string{"compose", "version"})
+	_, composeErr := RunBasicCmd(dockerCmd, []string{"compose", "version"})
 	if composeErr != nil {
 		fmt.Println("[+] The `compose` is not installed, so we'll try the deprecated `docker-compose` script")
 		composeScriptExists := CheckPath("docker-compose")

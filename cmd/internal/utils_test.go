@@ -1,11 +1,12 @@
 package internal
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetCwdFromExe(t *testing.T) {
@@ -14,7 +15,11 @@ func TestGetCwdFromExe(t *testing.T) {
 }
 
 func TestCheckPath(t *testing.T) {
-	assert.True(t, CheckPath("docker"), "Expected `CheckPath()` to find `docker` in `$PATH`")
+	dockerFound := CheckPath("docker")
+	if !dockerFound {
+		dockerFound = CheckPath("podman")
+	}
+	assert.True(t, dockerFound, "Expected `CheckPath()` to find `docker` or `podman` in `$PATH`")
 }
 
 func TestRunBasicCmd(t *testing.T) {

@@ -121,8 +121,8 @@ func RunRawCmd(name string, args ...string) error {
 
 // RunCmd executes a given command ("name") with a list of arguments ("args")
 func RunCmd(name string, args []string) error {
-	// If the command is ``docker``, prepend ``compose`` to the args
-	if name == "docker" {
+	// If the command is ``docker`` or ``podman``, prepend ``compose`` to the args
+	if name == "docker" || name == "podman" {
 		args = append([]string{"compose"}, args...)
 	}
 	return RunRawCmd(name, args...)
