@@ -24,7 +24,7 @@ func init() {
 	rootCmd.AddCommand(migrateTotpCmd)
 }
 
-func migrateTotp(cmd *cobra.Command, args []string){
+func migrateTotp(cmd *cobra.Command, args []string) {
 	docker.EvaluateDockerComposeStatus()
 	var yamlFile string
 	if dev {
@@ -42,11 +42,11 @@ func migrateTotp(cmd *cobra.Command, args []string){
 	docker.RunDockerComposeDown(yamlFile, false)
 	fmt.Println("[+] migrating TOTP secrets and migration codes")
 
-	err := docker.RunCmd("docker", []string{"-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate"})
+	err := docker.RunCmd("docker", []string{"compose", "-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate"})
 	if err != nil {
 		log.Fatalf("Error occurred while running migrate: %v", err)
 	}
-	err = docker.RunCmd("docker", []string{"-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate_totp_device"})
+	err = docker.RunCmd("docker", []string{"compose", "-f", yamlFile, "run", "--rm", "django", "python", "manage.py", "migrate_totp_device"})
 	if err != nil {
 		log.Fatalf("Error occurred while running migrate_totp_device: %v", err)
 	}
