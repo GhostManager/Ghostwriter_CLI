@@ -504,6 +504,85 @@ func RunDockerComposeRestore(yaml string, restore string) {
 	}
 }
 
+// RunDockerComposeMediaBackup executes the "docker compose" command to back up the media files in the environment
+// from the specified YAML file ("yaml" parameter).
+func RunDockerComposeMediaBackup(yaml string) {
+	// Determine the volume names based on the environment
+	var dataVolume, backupVolume string
+	if yaml == "local.yml" {
+		dataVolume = "ghostwriter_local_data"
+		backupVolume = "ghostwriter_local_postgres_data_backups"
+	} else {
+		dataVolume = "ghostwriter_production_data"
+		backupVolume = "ghostwriter_production_postgres_data_backups"
+	}
+
+	// Generate timestamp for backup filename
+	timestamp := time.Now().Format("2006_01_02T15_04_05")
+	backupFilename := fmt.Sprintf("media_backup_%s.tar.gz", timestamp)
+
+	fmt.Printf("[+] Running `%s` to back up media files from %s...\n", dockerCmd, dataVolume)
+	
+	// Create a tar.gz archive of the media volume and store it in the backups volume
+	// We use the postgres container because it has access to both volumes
+	backupErr := RunCmd(dockerCmd, []string{
+		"-f", yaml, "run", "--rm",
+		"-v", fmt.Sprintf("%s:/source:ro", dataVolume),
+		"-v", fmt.Sprintf("%s:/backups", backupVolume),
+		"postgres",
+		"sh", "-c",
+		fmt.Sprintf("tar czf /backups/%s -C /source .", backupFilename),
+	})
+	if backupErr != nil {
+		log.Fatalf("Error trying to back up media files with %s: %v\n", yaml, backupErr)
+	}
+	fmt.Printf("[+] Media backup created: %s\n", backupFilename)
+}
+
+// RunDockerComposeMediaRestore executes the "docker compose" command to restore media files backup in the
+// environment from the specified YAML file ("yaml" parameter).
+func RunDockerComposeMediaRestore(yaml string, restore string) {
+	// Determine the volume names based on the environment
+	var dataVolume, backupVolume string
+	if yaml == "local.yml" {
+		dataVolume = "ghostwriter_local_data"
+		backupVolume = "ghostwriter_local_postgres_data_backups"
+	} else {
+		dataVolume = "ghostwriter_production_data"
+		backupVolume = "ghostwriter_production_postgres_data_backups"
+	}
+
+	fmt.Printf("[+] Running `%s` to restore media files from backup %s with %s...\n", dockerCmd, restore, yaml)
+	
+	// First, clear the existing media files
+	fmt.Println("[+] Clearing existing media files...")
+	clearErr := RunCmd(dockerCmd, []string{
+		"-f", yaml, "run", "--rm",
+		"-v", fmt.Sprintf("%s:/data", dataVolume),
+		"postgres",
+		"sh", "-c",
+		"rm -rf /data/* /data/..?* /data/.[!.]*",
+	})
+	if clearErr != nil {
+		log.Fatalf("Error trying to clear existing media files with %s: %v\n", yaml, clearErr)
+	}
+
+	// Extract the backup archive to the media volume
+	fmt.Println("[+] Extracting media backup...")
+	restoreErr := RunCmd(dockerCmd, []string{
+		"-f", yaml, "run", "--rm",
+		"-v", fmt.Sprintf("%s:/data", dataVolume),
+		"-v", fmt.Sprintf("%s:/backups:ro", backupVolume),
+		"postgres",
+		"sh", "-c",
+		fmt.Sprintf("tar xzf /backups/%s -C /data", restore),
+	})
+	if restoreErr != nil {
+		log.Fatalf("Error trying to restore media files from %s with %s: %v\n", restore, yaml, restoreErr)
+	}
+	fmt.Printf("[+] Media files restored from %s\n", restore)
+}
+
 // Gets the major version number of the PostgreSQL installation
 func PostgresVersionInstalled(
 	yaml string,

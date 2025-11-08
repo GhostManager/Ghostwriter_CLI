@@ -24,3 +24,7 @@ func TestEvaluateDockerComposeStatus(t *testing.T) {
 	result := EvaluateDockerComposeStatus()
 	assert.NoError(t, result, "Expected `EvaluateDockerComposeStatus()` to return no error")
 }
+
+// Note: The media backup and restore functions (RunDockerComposeMediaBackup and RunDockerComposeMediaRestore)
+// require a full Docker environment with the appropriate volumes to test properly.
+// These functions are tested through integration testing with the actual Ghostwriter deployment.
