@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 )
 
 // Vars for tracking the list of Ghostwriter images
@@ -40,7 +40,7 @@ type Container struct {
 	ID     string
 	Image  string
 	Status string
-	Ports  []types.Port
+	Ports  []container.PortSummary
 	Name   string
 }
 
@@ -268,19 +268,19 @@ func RunManagementCmd(yaml string, mgmt string) {
 // FetchLogs fetches logs from the container with the specified "name" label ("containerName" parameter).
 func FetchLogs(containerName string, lines string) []string {
 	var logs []string
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Fatalf("Failed to get client in logs: %v", err)
 	}
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := cli.ContainerList(context.Background(), client.ContainerListOptions{})
 	if err != nil {
 		log.Fatalf("Failed to get container list: %v", err)
 	}
-	if len(containers) > 0 {
-		for _, container := range containers {
+	if len(containers.Items) > 0 {
+		for _, container := range containers.Items {
 			if container.Labels["name"] == containerName || containerName == "all" || container.Labels["name"] == "ghostwriter_"+containerName {
 				logs = append(logs, fmt.Sprintf("\n*** Logs for `%s` ***\n\n", container.Labels["name"]))
-				reader, err := cli.ContainerLogs(context.Background(), container.ID, types.ContainerLogsOptions{
+				reader, err := cli.ContainerLogs(context.Background(), container.ID, client.ContainerLogsOptions{
 					ShowStdout: true,
 					ShowStderr: true,
 					Tail:       lines,
@@ -314,18 +314,18 @@ func FetchLogs(containerName string, lines string) []string {
 func GetRunning() Containers {
 	var running Containers
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Fatalf("Failed to get client connection to Docker: %v", err)
 	}
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+	containers, err := cli.ContainerList(context.Background(), client.ContainerListOptions{
 		All: false,
 	})
 	if err != nil {
 		log.Fatalf("Failed to get container list from Docker: %v", err)
 	}
-	if len(containers) > 0 {
-		for _, container := range containers {
+	if len(containers.Items) > 0 {
+		for _, container := range containers.Items {
 			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
 				running = append(running, Container{
 					container.ID, container.Image, container.Status, container.Ports, container.Labels["name"],
@@ -443,20 +443,20 @@ func CheckDockerHealth(dev bool) (HealthIssues, error) {
 	}
 
 	// Check running containers to make sure every necessary container is up
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return issues, err
 	}
 
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+	containers, err := cli.ContainerList(context.Background(), client.ContainerListOptions{
 		All: false,
 	})
 	if err != nil {
 		return issues, err
 	}
 
-	if len(containers) > 0 {
-		for _, container := range containers {
+	if len(containers.Items) > 0 {
+		for _, container := range containers.Items {
 			if Contains(devImages, container.Image) || Contains(prodImages, container.Image) {
 				found = append(found, container.Image)
 			}
