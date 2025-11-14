@@ -4,9 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-14
+
+### Changed
+
+* Updated the Docker client to the latest to ensure continued compatibility with Docker v29 and later (Closes #23; PR #24)
+  * Docker v29 deprecated support for the Docker API v1.41 and earlier
+  * This does not impact most commands for containers (e.g., `up`, `build`), but a few utility commands (e.g., `healthcheck`) used older API calls for container information
+
+### Removed
+
+* Removed support for the deprecated `docker-compose` v1 script (Closes #16)
+  * Docker has deprecated this version and marked it as end of life as of July 2022
+  * Some current (e.g., `pg-upgrade`) and future features of Ghostwriter CLI cannot support v1, so it is time to remove it to avoid confusion
+  * All users should be updated to at least v2.x
+  * If someone needs v1 and absolutely cannot upgrade, support for v1 remains in older Ghostwriter CLI binaries available from past releases
+
 ## [0.2.30] - 2025-11-10
 
-## Changed
+### Changed
 
 * The `backup` command now also backs up all media files in the `ghostwriter_*_data` media volumes
   * Media backups are stored alongside the database backups in the `ghostwriter_*_postgres_data_backups` volumes
