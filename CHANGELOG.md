@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.30] - 2025-11-10
+
+## Changed
+
+* The `backup` command now also backs up all media files in the `ghostwriter_*_data` media volumes
+  * Media backups are stored alongside the database backups in the `ghostwriter_*_postgres_data_backups` volumes
+* The `restore` command now includes an optional `--media` flag to restore a media backup
+  * Restoring media will wipe the media volume and then replace the wiped contents with the backup
+  * Both backup files will share the same timestamp in the filename for easy identification
+
 ## [0.2.29] - 2025-10-23
 
 ### Added
