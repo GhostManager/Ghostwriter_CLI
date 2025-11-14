@@ -47,7 +47,11 @@ func displayRunning(cmd *cobra.Command, args []string) {
 			for _, port := range container.Ports {
 				var portString string
 
-				portString = fmt.Sprintf("%s:", port.IP)
+				if port.IP.IsValid() {
+					portString = fmt.Sprintf("%s:", port.IP)
+				} else {
+					portString = ""
+				}
 				if port.PrivatePort != 0 {
 					portString += fmt.Sprintf("%d", port.PrivatePort)
 				}
