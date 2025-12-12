@@ -44,5 +44,6 @@ func migrateTotp(cmd *cobra.Command, args []string) {
 	docker.RunManagementCmd(yamlFile, "migrate")
 	docker.RunManagementCmd(yamlFile, "migrate_totp_device")
 
+	docker.RunDockerComposeUp(yamlFile)
 	fmt.Println("[+] TOTP secrets and migration codes migration complete")
 }
