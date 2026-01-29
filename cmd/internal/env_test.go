@@ -42,7 +42,8 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 
 	// Test ``GetConfigAll()``
 	config := GetConfigAll()
-	assert.Equal(t, len(config), 64, "`GetConfigAll()` should return all values")
+	t.Logf("%v", config)
+	assert.Equal(t, 66,len(config), "`GetConfigAll()` should return all values")
 
 	// Test ``SetConfig()``
 	SetConfig("django_date_format", "Y M d")
