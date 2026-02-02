@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGhostwriterEnvironmentVariables(t *testing.T) {
@@ -42,8 +43,7 @@ func TestGhostwriterEnvironmentVariables(t *testing.T) {
 
 	// Test ``GetConfigAll()``
 	config := GetConfigAll()
-	t.Logf("%v", config)
-	assert.Equal(t, 66,len(config), "`GetConfigAll()` should return all values")
+	assert.Equal(t, 66, len(config), "`GetConfigAll()` should return all values")
 
 	// Test ``SetConfig()``
 	SetConfig("django_date_format", "Y M d")
