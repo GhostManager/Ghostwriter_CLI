@@ -83,7 +83,7 @@ func generateCertificates(path string) error {
 	keyPath := filepath.Join(path, "ssl", "ghostwriter.key")
 	if checkCerts(certPath, keyPath) == nil {
 		fmt.Printf("[!] Found existing certificate files, so new ones will not be generated...\n")
-		fmt.Printf("[*] Rename or delete ssl/ghostwriter.key and ssl/ghostwriter.key if you want to replace these keys")
+		fmt.Printf("[*] Rename or delete ssl/ghostwriter.key and ssl/ghostwriter.key if you want to replace these keys\n")
 		return nil
 	}
 	fmt.Printf("[*] Did not find existing TLS/SSL certs for the Nginx container, so generating them now...\n")
