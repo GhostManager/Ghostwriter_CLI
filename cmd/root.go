@@ -29,5 +29,5 @@ func Execute() {
 
 func init() {
 	// Persistent flags defined here are global for the CLI
-	rootCmd.PersistentFlags().Var(&mode, "mode", "Execution mode. One of: `prod` (default, downloads Ghostwriter), `local-dev` or `local-prod` (uses Ghostwriter source code in same directory)")
+	rootCmd.PersistentFlags().Var(&mode, "mode", "Set execution mode, one of: `prod` (default; downloads Ghostwriter images), `local-dev`, or `local-prod` (local modes uses the Ghostwriter source code in same directory)")
 }

@@ -41,7 +41,7 @@ func init() {
 		&installVersion,
 		"version",
 		"",
-		"Version to install. Defaults to latest. Ignored for --mode=local-*. NOTE: downgrading is not supported.",
+		"Version to install. Defaults to the latest tagged release. Ignored for --mode=local-*. NOTE: downgrading is not supported.",
 	)
 	rootCmd.AddCommand(installCmd)
 }
@@ -65,7 +65,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 	}
 	if res.StatusCode != 200 {
 		if res.StatusCode == 404 {
-			return fmt.Errorf("Could not get gw-cli.yml from github: status code %d\n(Ghostwriter-CLI cannot install versions of Ghostwriter older than v6.2.2 in `--mode=production`. If you're trying to install a version later than that, try updating Ghostwriter-CLI)", res.StatusCode)
+			return fmt.Errorf("Could not get gw-cli.yml from github: status code %d\n(Ghostwriter-CLI cannot install versions of Ghostwriter older than v6.2.3 in `--mode=production`. If you're trying to install a version later than that, try updating Ghostwriter-CLI)", res.StatusCode)
 		}
 		return fmt.Errorf("Could not get gw-cli.yml from github: status code %d", res.StatusCode)
 	}

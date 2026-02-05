@@ -31,7 +31,7 @@ func init() {
 		&updateVersion,
 		"version",
 		"",
-		"Version to install. Defaults to latest. Ignored for --mode=local-*. NOTE: downgrading is not supported.",
+		"Version to install. Defaults to the latest tagged release. Ignored for --mode=local-*. NOTE: downgrading is not supported.",
 	)
 	rootCmd.AddCommand(updateCmd)
 }
