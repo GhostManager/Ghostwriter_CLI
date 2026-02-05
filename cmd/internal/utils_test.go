@@ -51,11 +51,18 @@ func TestGetLocalGhostwriterVersion(t *testing.T) {
 
 func TestGetRemoteVersion(t *testing.T) {
 	// Test reading the version data from GitHub's API
-	version, _, err := GetRemoteVersion("GhostManager", "Ghostwriter")
+	version, url, err := GetRemoteVersion("GhostManager", "Ghostwriter")
 	assert.NoError(t, err, "Expected `GetRemoteVersion()` to return no error")
+	assert.NotEmpty(t, version, "Expected `GetRemoteVersion()` to return a non-empty version string")
 	assert.True(
 		t,
-		strings.Contains(version, "Ghostwriter v"),
-		"Expected `GetRemoteVersion()` to return a string containing `Ghostwriter v...`",
+		strings.HasPrefix(version, "v"),
+		"Expected `GetRemoteVersion()` to return a version string starting with `v`",
+	)
+	assert.NotEmpty(t, url, "Expected `GetRemoteVersion()` to return a non-empty URL")
+	assert.True(
+		t,
+		strings.Contains(url, "github.com/GhostManager/Ghostwriter"),
+		"Expected `GetRemoteVersion()` to return a URL containing the Ghostwriter repository",
 	)
 }
