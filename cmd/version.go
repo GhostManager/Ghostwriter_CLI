@@ -34,30 +34,37 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("[+] Fetching latest version information:")
 
-	if len(config.BuildDate) == 0 {
-		fmt.Fprintf(writer, "Ghostwriter CLI\tLocal Version\t%s\n", config.Version)
-	} else {
-		fmt.Fprintf(writer, "Ghostwriter CLI\tLocal Version\t%s (%s)\n", config.Version, config.BuildDate)
-	}
-
 	dockerInterface := docker.GetDockerInterface(mode)
 	dockerCurrentVersion, err := dockerInterface.GetVersion()
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(writer, "Ghostwriter\tLocal Version\t%s\n", dockerCurrentVersion)
 
 	gwcliLatestVersion, htmlUrl, err := utils.GetRemoteVersion("GhostManager", "Ghostwriter_CLI")
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(writer, "Ghostwriter CLI\tLatest Release\t%s\n", gwcliLatestVersion)
 
 	dockerLatestVersion, _, err := utils.GetRemoteVersion("GhostManager", "Ghostwriter")
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(writer, "Ghostwriter\tLatest Release\t%s\n", dockerLatestVersion)
+
+	fmt.Println()
+
+	fmt.Fprintf(writer, "Ghostwriter CLI\n")
+	if len(config.BuildDate) == 0 {
+		fmt.Fprintf(writer, "Local Version\t%s\n", config.Version)
+	} else {
+		fmt.Fprintf(writer, "Local Version\t%s (%s)\n", config.Version, config.BuildDate)
+	}
+	fmt.Fprintf(writer, "Latest Release\t%s\n", gwcliLatestVersion)
+	fmt.Fprintf(writer, "\n")
+
+	fmt.Fprintf(writer, "Ghostwriter\n")
+	fmt.Fprintf(writer, "Local Version\t%s\n", dockerCurrentVersion)
+	fmt.Fprintf(writer, "Latest Release\t%s\n", dockerLatestVersion)
+	fmt.Fprintf(writer, "\n")
 
 	if gwcliLatestVersion != config.Version {
 		fmt.Fprintf(writer, "Download the latest version of Ghostwriter CLI at:\t%s\n", htmlUrl)
@@ -66,11 +73,11 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(writer, "Install the latest version of Ghostwriter using the `update` subcommand\n")
 	}
 
-	writer.Flush()
-
 	if dockerCurrentVersion == "latest" {
 		fmt.Println("[!] Using the `latest` tag is not recommended - pulling containers will not apply necessary changes to the docker-compose.yml file")
 	}
+
+	writer.Flush()
 
 	return nil
 }
