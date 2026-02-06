@@ -47,6 +47,9 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.SetDefault("use_docker", "yes")
 	ghostEnv.SetDefault("ipythondir", "/app/.ipython")
 
+	// Passive Voice Detection configuration
+	ghostEnv.SetDefault("spacy_model", "en_core_web_sm")
+
 	// Django configuration
 	ghostEnv.SetDefault("django_mfa_always_reveal_backup_tokens", false)
 	ghostEnv.SetDefault("django_account_allow_registration", false)
@@ -122,6 +125,7 @@ func setGhostwriterConfigDefaultValues() {
 	ghostEnv.RegisterAlias("date_format", "django_date_format")
 	ghostEnv.RegisterAlias("admin_password", "django_superuser_password")
 	ghostEnv.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
+	ghostEnv.RegisterAlias("spacy", "spacy_model")
 }
 
 // WriteGhostwriterEnvironmentVariables writes the environment variables to the ".env" file.
