@@ -113,7 +113,7 @@ func updateContainers(dockerInterface docker.DockerInterface) error {
 	fmt.Println("[+] Seeding database with initial data...")
 	seedErr := dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
 	if seedErr != nil {
-		return fmt.Errorf("Could not seed database: %w", err)
+		return fmt.Errorf("Could not seed database: %w", seedErr)
 	}
 
 	return nil
