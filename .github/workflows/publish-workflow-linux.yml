@@ -33,3 +33,4 @@ jobs:
           release_tag: ${{ github.ref_name }}
           overwrite: true
           executable_compression: upx --brute
+          asset_name: ghostwriter-cli-${{ matrix.goos }}-${{ matrix.goarch }}
