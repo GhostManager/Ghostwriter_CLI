@@ -254,11 +254,13 @@ type DownOptions struct {
 func (this DockerInterface) Down(opts *DownOptions) error {
 	fmt.Printf("[+] Running `%s` to take down the containers with %s...\n", this.command, this.ComposeFile)
 	args := []string{"down"}
-	if opts.Volumes {
-		args = append(args, "--volumes")
-	}
-	if opts.RemoveOrphans {
-		args = append(args, "--remove-orphans")
+	if opts != nil {
+		if opts.Volumes {
+			args = append(args, "--volumes")
+		}
+		if opts.RemoveOrphans {
+			args = append(args, "--remove-orphans")
+		}
 	}
 	return this.RunComposeCmd(args...)
 }
