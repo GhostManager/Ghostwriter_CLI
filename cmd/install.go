@@ -160,6 +160,6 @@ func installGhostwriter(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("[+] Ghostwriter is ready to go!")
-	fmt.Printf("[+] You can login as `%s` with this password: %s\n", dockerInterface.Env.Get("django_superuser_username"), dockerInterface.Env.Get("django_superuser_password"))
+	fmt.Printf("[+] You can log in as `%s` with this password: %s\n", dockerInterface.Env.Get("django_superuser_username"), dockerInterface.Env.Get("django_superuser_password"))
 	fmt.Println("[+] You can get your admin password by running: ghostwriter-cli config get admin_password")
 }
