@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-02-10
+
+### Added
+
+* Added the spaCy model selection to the configuration options for Ghostwriter v6.3.0
+
+### Changed
+
+* Changed production installations to pull published container images
+  * Images are now pre-built to remove the potential for builds to fail due to issues with system resources, package managers, or DNS
+    * New images are published whenever we tag a new release of Ghostwriter
+  * It is no longer necessary to clone or maintain a local copy of the Ghostwriter code repository
+  * Installs now take ~5 minutes, depending on available resources and network speed, a decrease of at least 4x
+  * The `.env` config file and Docker YAML files now live in the system's XDG data file directory to allow Ghostwriter CLI to work from any location
+    * Linux: `~/.local/share/ghostwriter/`
+    * macOS: `~/Library/Application Support/ghostwriter/`
+    * Windows: `%LOCALAPPDATA%/ghostwriter/`
+* As part of the above change, Ghostwriter CLI now downloads the latest Docker YAML file from Ghostwriter's releases
+  * This ensures you always have the file that matches your release in case we make changes for a release
+* Some commands now offer `--version` flag that you can to specify the version to which you wish to update
+* The `update` command now pulls the latest published container images
+* The `version` command now lists the following version information:
+  * The local version of Ghostwriter CLI
+  * The latest release of Ghostwriter CLI available from GitHub releases
+  * The version of the local Ghostwriter container images
+  * The version of the latest published Ghostwriter container images
+* Replaced the `--dev` flag with the `--mode` option to specify `prod` (default) or `local-prod` or `local-dev`
+  * The `local-dev` and `local-prod` modes work like the old modes by using a local copy of the Ghostwriter code repository
+
 ## [0.3.0] - 2025-11-14
 
 ### Changed
