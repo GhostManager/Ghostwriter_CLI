@@ -23,7 +23,7 @@ type GWEnvironment struct {
 func ReadEnv(dir string) (*GWEnvironment, error) {
 	filepath := filepath.Join(dir, ".env")
 	// Create empty file if it doesn't exist
-	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE, 0600)
+	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, err
 	}
