@@ -94,8 +94,7 @@ func GetDockerDirFromMode(mode DockerMode) string {
 			log.Fatalf("Could not get data directory: %s\n", err)
 		}
 		dir = filepath.Dir(dir)
-		err = os.Mkdir(dir, 0666)
-		if err != nil && !errors.Is(err, os.ErrExist) {
+		if err := os.MkdirAll(dir, 0700); err != nil {
 			log.Fatalf("Could not create directory %s: %s\n", dir, err)
 		}
 		return dir
