@@ -158,6 +158,9 @@ func setDefaultConfigValues(env *viper.Viper) {
 	env.SetDefault("use_docker", "yes")
 	env.SetDefault("ipythondir", "/app/.ipython")
 
+	// Passive Voice Detection configuration
+	env.SetDefault("spacy_model", "en_core_web_sm")
+
 	// Django configuration
 	env.SetDefault("django_mfa_always_reveal_backup_tokens", false)
 	env.SetDefault("django_account_allow_registration", false)
@@ -233,4 +236,5 @@ func setDefaultConfigValues(env *viper.Viper) {
 	env.RegisterAlias("date_format", "django_date_format")
 	env.RegisterAlias("admin_password", "django_superuser_password")
 	env.RegisterAlias("hasura_password", "hasura_graphql_admin_secret")
+	env.RegisterAlias("spacy", "spacy_model")
 }
