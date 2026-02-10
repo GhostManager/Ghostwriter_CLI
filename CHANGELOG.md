@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Images are now pre-built to remove the potential for builds to fail due to issues with system resources, package managers, or DNS
     * New images are published whenever we tag a new release of Ghostwriter
   * It is no longer necessary to clone or maintain a local copy of the Ghostwriter code repository
-  * Installs now take ~5 minutes, depending on available resources and network speed, a decrease of at least 4x
+  * New installs now take ~5 minutes, depending on available resources and network speed, a decrease of at least 4x
   * The `.env` config file and Docker YAML files now live in the system's XDG data file directory to allow Ghostwriter CLI to work from any location
     * Linux: `~/.local/share/ghostwriter/`
     * macOS: `~/Library/Application Support/ghostwriter/`
