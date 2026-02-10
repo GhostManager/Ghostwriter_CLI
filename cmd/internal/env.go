@@ -46,6 +46,13 @@ func ReadEnv(dir string) (*GWEnvironment, error) {
 func (this *GWEnvironment) Save() {
 	// Viper's write does not sort keys, so implement our own that does.
 	// Use the write-and-rename pattern to atomically update.
+
+	// Preserve existing file permissions, or use 0600 as default
+	perm := os.FileMode(0600)
+	if info, err := os.Stat(this.filepath); err == nil {
+		perm = info.Mode().Perm()
+	}
+
 	dir := path.Dir(this.filepath)
 	file, err := os.CreateTemp(dir, ".env")
 	if err != nil {
@@ -75,6 +82,12 @@ func (this *GWEnvironment) Save() {
 	err = os.Rename(file.Name(), this.filepath)
 	if err != nil {
 		log.Fatalf("Could not save environmental variables: %s\n", err)
+	}
+
+	// Apply preserved permissions
+	err = os.Chmod(this.filepath, perm)
+	if err != nil {
+		log.Fatalf("Could not set permissions on environmental variables file: %s\n", err)
 	}
 }
 
