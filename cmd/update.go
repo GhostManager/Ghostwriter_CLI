@@ -62,7 +62,7 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 		RemoveOrphans: true,
 	})
 	if err != nil {
-		log.Fatalf("Could not near down containers: %v", err)
+		log.Fatalf("Could not tear down containers: %v", err)
 	}
 
 	err = updateContainers(*dockerInterface)
