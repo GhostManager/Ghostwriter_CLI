@@ -70,11 +70,16 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 		log.Fatalf("%v\n", err)
 	}
 
-	fmt.Println("[+] Starting containers...")
-	err = dockerInterface.Up()
-	if err != nil {
-		log.Fatalf("Error bringing containers up: %s\n", err)
+	if docker.AskForConfirmation("Would you like to start the containers now?") {
+		fmt.Println("[+] Starting containers...")
+		err = dockerInterface.Up()
+		if err != nil {
+			log.Fatalf("Error bringing containers up: %s\n", err)
+		}
+		fmt.Println("[+] Ghostwriter is ready to go!")
+	} else {
+		fmt.Println("[*] OK, bringing down remaining containers...")
+		dockerInterface.Down(nil)
+		fmt.Println("[*] All containers are down. Run 'ghostwriter-cli up' when you're ready to start Ghostwriter.")
 	}
-
-	fmt.Println("[+] Ghostwriter is ready to go!")
 }
