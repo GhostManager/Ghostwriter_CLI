@@ -54,6 +54,7 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 		fmt.Println("[+] Starting development environment update")
 	} else {
 		fmt.Println("[+] Starting production environment update")
+		docker.PrepareSettingsDirectory(dockerInterface.Dir)
 	}
 
 	fmt.Println("[+] Tearing down containers...")

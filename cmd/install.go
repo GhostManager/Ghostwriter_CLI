@@ -138,6 +138,7 @@ func installGhostwriter(cmd *cobra.Command, args []string) {
 	} else {
 		fmt.Println("[+] Starting production environment installation")
 		docker.GenerateCertificatePackage(dockerInterface.Dir)
+		docker.PrepareSettingsDirectory(dockerInterface.Dir)
 	}
 
 	err = updateContainers(*dockerInterface)
