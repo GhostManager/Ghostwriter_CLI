@@ -191,7 +191,7 @@ func GetDockerInterface(mode DockerMode) *DockerInterface {
 
 // Runs docker/podman with the specified additional arguments, in the proper CWD with the env and compose files.
 // Basis for most of the other Run commands.
-func (this DockerInterface) RunCmd(args ...string) error {
+func (this *DockerInterface) RunCmd(args ...string) error {
 	path, err := exec.LookPath(this.command)
 	if err != nil {
 		log.Fatalf("`%s` is not installed or not available in the current PATH variable", this.command)
@@ -215,7 +215,7 @@ func (this DockerInterface) RunCmd(args ...string) error {
 }
 
 // Similar to `RunCmd` but returns stdout
-func (this DockerInterface) RunCmdWithOutput(args ...string) (string, error) {
+func (this *DockerInterface) RunCmdWithOutput(args ...string) (string, error) {
 	path, err := exec.LookPath(this.command)
 	if err != nil {
 		log.Fatalf("`%s` is not installed or not available in the current PATH variable", this.command)
@@ -230,13 +230,13 @@ func (this DockerInterface) RunCmdWithOutput(args ...string) (string, error) {
 }
 
 // Runs a `docker compose` subcommand, pointing to the configured compose file, with additional arguments.
-func (this DockerInterface) RunComposeCmd(args ...string) error {
+func (this *DockerInterface) RunComposeCmd(args ...string) error {
 	args = append([]string{"compose", "-f", this.ComposeFile}, args...)
 	return this.RunCmd(args...)
 }
 
 // Bring all containers up
-func (this DockerInterface) Up() error {
+func (this *DockerInterface) Up() error {
 	fmt.Printf("[+] Running `%s` to bring up the containers with %s...\n", this.command, this.ComposeFile)
 	return this.RunComposeCmd("up", "-d")
 }
@@ -250,7 +250,7 @@ type DownOptions struct {
 }
 
 // Take down all containers. `opts` are optional
-func (this DockerInterface) Down(opts *DownOptions) error {
+func (this *DockerInterface) Down(opts *DownOptions) error {
 	fmt.Printf("[+] Running `%s` to take down the containers with %s...\n", this.command, this.ComposeFile)
 	args := []string{"down"}
 	if opts != nil {
@@ -265,7 +265,7 @@ func (this DockerInterface) Down(opts *DownOptions) error {
 }
 
 // Gets the docker compose project name
-func (this DockerInterface) GetComposeProjectName() string {
+func (this *DockerInterface) GetComposeProjectName() string {
 	if this.composeProjectName != "" {
 		return this.composeProjectName
 	}
@@ -318,7 +318,7 @@ func (c Containers) Swap(i, j int) {
 }
 
 // Gets a list of all running docker containers (including outside of this project)
-func (this DockerInterface) GetRunning() Containers {
+func (this *DockerInterface) GetRunning() Containers {
 	var running Containers
 
 	cli, err := this.GetDaemonClient()
@@ -344,7 +344,7 @@ func (this DockerInterface) GetRunning() Containers {
 }
 
 // Gets logs from a container
-func (this DockerInterface) FetchLogs(containerName string, lines string) []string {
+func (this *DockerInterface) FetchLogs(containerName string, lines string) []string {
 	var logs []string
 	cli, err := this.GetDaemonClient()
 	if err != nil {
@@ -389,7 +389,7 @@ func (this DockerInterface) FetchLogs(containerName string, lines string) []stri
 }
 
 // Determine if the container with the specified name is running
-func (this DockerInterface) IsServiceRunning(containerName string) bool {
+func (this *DockerInterface) IsServiceRunning(containerName string) bool {
 	projectName := this.GetComposeProjectName()
 	name := fmt.Sprintf("%s-%s-1", projectName, containerName)
 
@@ -414,7 +414,7 @@ func (this DockerInterface) IsServiceRunning(containerName string) bool {
 
 // Determine if the Django application has completed startup based on
 // the "Application startup complete" log message.
-func (this DockerInterface) IsDjangoStarted() bool {
+func (this *DockerInterface) IsDjangoStarted() bool {
 	expectedString := "Application startup complete"
 	logs := this.FetchLogs("ghostwriter_django", "500")
 	for _, entry := range logs {
@@ -427,7 +427,7 @@ func (this DockerInterface) IsDjangoStarted() bool {
 }
 
 // Check if PostgreSQL is having trouble starting due to a password mismatch.
-func (this DockerInterface) IsPostgresStarted() bool {
+func (this *DockerInterface) IsPostgresStarted() bool {
 	expectedString := "Password does not match for user"
 	logs := this.FetchLogs("ghostwriter_postgres", "100")
 	for _, entry := range logs {
@@ -440,7 +440,7 @@ func (this DockerInterface) IsPostgresStarted() bool {
 }
 
 // Determine if the Ghostwriter application has completed startup
-func (this DockerInterface) WaitForDjango() bool {
+func (this *DockerInterface) WaitForDjango() bool {
 	// Wait for ghostwriter to start running
 	fmt.Println("[+] Waiting for Django application startup to complete...")
 	counter := 0
@@ -470,13 +470,13 @@ func (this DockerInterface) WaitForDjango() bool {
 }
 
 // Runs the django manage.py script, with the specified arguments
-func (this DockerInterface) RunDjangoManageCommand(args ...string) error {
+func (this *DockerInterface) RunDjangoManageCommand(args ...string) error {
 	args = append([]string{"run", "--rm", "django", "python", "manage.py"}, args...)
 	return this.RunComposeCmd(args...)
 }
 
 // Connects to the docker daemon
-func (this DockerInterface) GetDaemonClient() (*client.Client, error) {
+func (this *DockerInterface) GetDaemonClient() (*client.Client, error) {
 	if this.client != nil {
 		return this.client, nil
 	}
@@ -487,7 +487,7 @@ func (this DockerInterface) GetDaemonClient() (*client.Client, error) {
 }
 
 // Gets the currently installed version of Ghostwriter
-func (this DockerInterface) GetVersion() (string, error) {
+func (this *DockerInterface) GetVersion() (string, error) {
 	if this.ManageComposeFile {
 		// get the version embedded in the compose file
 		out, err := this.RunCmdWithOutput("compose", "-f", this.ComposeFile, "config", "--images")
@@ -514,7 +514,7 @@ func (this DockerInterface) GetVersion() (string, error) {
 // GetVolumeNameFromConfig extracts the actual volume name from the Docker Compose configuration.
 // The volumeKey is the logical name (e.g., "production_postgres_data").
 // Returns the actual Docker volume name (e.g., "ghostwriter_production_postgres_data").
-func (this DockerInterface) GetVolumeNameFromConfig(volumeKey string) (string, error) {
+func (this *DockerInterface) GetVolumeNameFromConfig(volumeKey string) (string, error) {
 	volumePath, err := yaml.PathString(fmt.Sprintf("$.volumes.%s.name", volumeKey))
 	if err != nil {
 		return "", fmt.Errorf("failed to create yaml path: %w", err)
@@ -537,14 +537,14 @@ func (this DockerInterface) GetVolumeNameFromConfig(volumeKey string) (string, e
 }
 
 // VerifyVolumeExists checks if a Docker volume with the given name exists.
-func (this DockerInterface) VerifyVolumeExists(volumeName string) bool {
+func (this *DockerInterface) VerifyVolumeExists(volumeName string) bool {
 	err := this.RunCmd("volume", "inspect", volumeName)
 	return err == nil
 }
 
 // ListVolumes returns a list of Docker volumes matching the given name filter.
 // The filter can be a simple string that will be matched as a prefix.
-func (this DockerInterface) ListVolumes(nameFilter string) ([]string, error) {
+func (this *DockerInterface) ListVolumes(nameFilter string) ([]string, error) {
 	out, err := this.RunCmdWithOutput("volume", "ls", "--format", "{{.Name}}")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list volumes: %w", err)
@@ -564,7 +564,7 @@ func (this DockerInterface) ListVolumes(nameFilter string) ([]string, error) {
 
 // CopyVolume copies data from sourceVol to destVol using a temporary Alpine container.
 // This is useful for migrating data between volumes with different names.
-func (this DockerInterface) CopyVolume(sourceVol, destVol string) error {
+func (this *DockerInterface) CopyVolume(sourceVol, destVol string) error {
 	// Verify source volume exists
 	if !this.VerifyVolumeExists(sourceVol) {
 		return fmt.Errorf("source volume does not exist: %s", sourceVol)
@@ -597,7 +597,7 @@ func (this DockerInterface) CopyVolume(sourceVol, destVol string) error {
 
 // VerifyVolumeCopy compares file counts between source and destination volumes.
 // Returns the file count in each volume and any error encountered.
-func (this DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, int, error) {
+func (this *DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, int, error) {
 	// Count files in source volume
 	sourceOut, err := this.RunCmdWithOutput("run", "--rm",
 		"-v", fmt.Sprintf("%s:/data:ro", sourceVol),
