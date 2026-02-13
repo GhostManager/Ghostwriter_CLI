@@ -69,7 +69,7 @@ func CheckLatestVersionNag(docker *DockerInterface) {
 	lastCheckFile := filepath.Join(docker.Dir, ".gwcli-last-update-check")
 	lastCheckTime := readLastVersionCheck(lastCheckFile)
 	now := time.Now().Unix()
-	if lastCheckTime+(24*60*60*1000) >= time.Now().Unix() {
+	if lastCheckTime+(24*60*60) >= now {
 		// Checked recently, do nothing
 		return
 	}
