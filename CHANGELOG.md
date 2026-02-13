@@ -4,11 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-02-10
+## [1.0.0-rc1] - 2025-02-13
 
 ### Added
 
 * Added the spaCy model selection to the configuration options for Ghostwriter v6.3.0
+* Added a _settings/_ directory in the Ghostwriter data directory for custom Django configuration files
+  * This directory allows users running published container images (prod mode) to customize Django settings without needing a local codebase
+  * The directory includes a comprehensive README.md with examples for common customizations like SSO and email configuration
+  * Settings files are loaded in alphabetical order, allowing number prefixes for controlled loading sequence (e.g., `1-sso-config.py`)
+  * Only applies to the default production mode; `local-dev` and `local-prod` modes should continue using the codebase's _config/settings/production.d_ and _local.d_ directories
+* Added `migrate` command to help users transition from legacy Ghostwriter installations to the new XDG data directory structure
+  * Migrates SSL certificates from _ssl/_ to the data directory's _ssl/_ subdirectory
+  * Migrates _.env_ configuration file to the data directory
+  * Migrates custom Django settings from _config/settings/production.d/_ to the data directory's _settings/_ subdirectory
+  * Automatically detects and migrates Docker volumes from old installations
+    * Migrates PostgreSQL database (_production\_postgres\_data_)
+    * Migrates media files and user uploads (_production\_data_)
+    * Migrates backup archives (_production\_postgres\_data\_backups_)
+    * Static files are regenerated automatically (no migration needed)
+  * Creates safety backup before volume migration to prevent data loss
+  * Verifies file counts after volume migration to ensure successful copy
+  * Offers to clean up old volumes after successful migration to free disk space
+  * Prompts for confirmation before overwriting existing files
+  * Source files and volumes remain in place (copy, not move) for safe verification
+  * Run from your old Ghostwriter directory with: `ghostwriter-cli migrate`
 
 ### Changed
 
@@ -18,9 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * It is no longer necessary to clone or maintain a local copy of the Ghostwriter code repository
   * New installs now take ~5 minutes, depending on available resources and network speed, a decrease of at least 4x
   * The `.env` config file and Docker YAML files now live in the system's XDG data file directory to allow Ghostwriter CLI to work from any location
-    * Linux: `~/.local/share/ghostwriter/`
-    * macOS: `~/Library/Application Support/ghostwriter/`
-    * Windows: `%LOCALAPPDATA%/ghostwriter/`
+    * Linux: _~/.local/share/ghostwriter/_
+    * macOS: _~/Library/Application Support/ghostwriter/_
+    * Windows: _%LOCALAPPDATA%/ghostwriter/_
 * As part of the above change, Ghostwriter CLI now downloads the latest Docker YAML file from Ghostwriter's releases
   * This ensures you always have the file that matches your release in case we make changes for a release
 * Some commands now offer `--version` flag that you can to specify the version to which you wish to update
