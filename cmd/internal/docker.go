@@ -500,15 +500,15 @@ func (this *DockerInterface) GetVersion() (string, error) {
 			return "", fmt.Errorf("Could not find version number in docker images")
 		}
 		return captures[1], nil
-	} else {
-		// get the version in the source tree's VERSION file
-		versionFileBytes, err := os.ReadFile(filepath.Join(this.Dir, "VERSION"))
-		if err != nil {
-			return "", fmt.Errorf("Could not read VERSION file: %w", err)
-		}
-		versionFile := string(versionFileBytes)
-		return strings.Split(versionFile, "\n")[0], nil
 	}
+
+	// get the version in the source tree's VERSION file
+	versionFileBytes, err := os.ReadFile(filepath.Join(this.Dir, "VERSION"))
+	if err != nil {
+		return "", fmt.Errorf("Could not read VERSION file: %w", err)
+	}
+	versionFile := string(versionFileBytes)
+	return strings.Split(versionFile, "\n")[0], nil
 }
 
 // GetVolumeNameFromConfig extracts the actual volume name from the Docker Compose configuration.
