@@ -44,7 +44,7 @@ func backupDatabase(cmd *cobra.Command, args []string) {
 }
 
 func listBackups(dockerInterface *docker.DockerInterface) {
-	fmt.Printf("[+] Listing avilable PostgreSQL database backup files with %s...\n", dockerInterface.ComposeFile)
+	fmt.Printf("[+] Listing available PostgreSQL database backup files with %s...\n", dockerInterface.ComposeFile)
 	err := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "backups")
 	if err != nil {
 		log.Fatalf("Error trying to list backups files with %s: %v\n", dockerInterface.ComposeFile, err)
