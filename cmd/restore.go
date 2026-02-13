@@ -60,7 +60,7 @@ func restoreDatabase(cmd *cobra.Command, args []string) {
 		if !strings.HasPrefix(mediaBackupFile, "media_backup_") {
 			fmt.Println("[!] Warning: Media backup filename should start with 'media_backup_'")
 		}
-		fmt.Printf("[+] Restoring the `%s` media backup file in the development environment...\n", mediaBackupFile)
+		fmt.Printf("[+] Restoring the `%s` media backup file...\n", mediaBackupFile)
 		mediaRestore(dockerInterface, mediaBackupFile)
 	}
 }
