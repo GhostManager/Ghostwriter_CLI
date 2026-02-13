@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
@@ -59,10 +60,22 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 		url = "https://github.com/GhostManager/Ghostwriter/releases/download/" + version + "/gw-cli.yml"
 	}
 
-	res, err := http.Get(url)
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("Could not create request for gw-cli.yml: %w", err)
+	}
+	req.Header.Set("User-Agent", "Ghostwriter-CLI")
+
+	res, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Could not get gw-cli.yml from github: %w", err)
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
 		if res.StatusCode == 404 {
 			return fmt.Errorf("Could not get gw-cli.yml from github: status code %d\n(Ghostwriter-CLI cannot install versions of Ghostwriter older than v6.2.3 in `--mode=production`. If you're trying to install a version later than that, try updating Ghostwriter-CLI)", res.StatusCode)

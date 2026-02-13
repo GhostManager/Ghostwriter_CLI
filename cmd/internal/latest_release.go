@@ -13,6 +13,10 @@ import (
 )
 
 func FetchLatestRelease() (string, error) {
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
 	req, err := http.NewRequest("GET", "https://api.github.com/repos/GhostManager/Ghostwriter/releases/latest", nil)
 	if err != nil {
 		return "", fmt.Errorf("Could not create request: %w", err)
@@ -20,10 +24,13 @@ func FetchLatestRelease() (string, error) {
 	req.Header.Add("User-Agent", "Ghostwriter-CLI")
 	req.Header.Add("Accept", "application/vnd.github+json")
 	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
-	res, err := http.DefaultClient.Do(req)
+
+	res, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("Could not send request: %w", err)
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
 		return "", errors.New(fmt.Sprintf("Got status code %d", res.StatusCode))
 	}
