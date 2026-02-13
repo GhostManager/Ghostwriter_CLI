@@ -171,3 +171,152 @@ func AskForConfirmation(s string) bool {
 		}
 	}
 }
+
+// MigrationResult tracks the outcome of a migration operation.
+type MigrationResult struct {
+	Migrated int
+	Skipped  int
+	Failed   int
+	Errors   []error
+}
+
+// AddError adds an error to the migration result and increments the failure counter.
+func (r *MigrationResult) AddError(err error) {
+	r.Failed++
+	r.Errors = append(r.Errors, err)
+}
+
+// MigrateFile copies a file from source to destination with atomic write and permission handling.
+// If confirm is true and the destination exists, it asks the user for confirmation to overwrite.
+// Returns true if the file was migrated, false if it was skipped.
+func MigrateFile(sourcePath, destPath string, perm os.FileMode, confirm bool) (bool, error) {
+	// Check if source exists
+	if !FileExists(sourcePath) {
+		return false, fmt.Errorf("source file does not exist: %s", sourcePath)
+	}
+
+	// Check if destination exists
+	if FileExists(destPath) {
+		if confirm {
+			prompt := fmt.Sprintf("File %s already exists. Overwrite?", filepath.Base(destPath))
+			if !AskForConfirmation(prompt) {
+				return false, nil // Skipped by user
+			}
+		} else {
+			return false, nil // Skip without confirmation
+		}
+	}
+
+	// Ensure destination directory exists
+	destDir := filepath.Dir(destPath)
+	if err := os.MkdirAll(destDir, 0700); err != nil {
+		return false, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Read source file
+	data, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	// Write to temporary file first (atomic write pattern)
+	tempFile, err := os.CreateTemp(destDir, ".migrate-*")
+	if err != nil {
+		return false, fmt.Errorf("failed to create temporary file: %w", err)
+	}
+	tempPath := tempFile.Name()
+	defer os.Remove(tempPath) // Clean up temp file if something goes wrong
+
+	if _, err := tempFile.Write(data); err != nil {
+		tempFile.Close()
+		return false, fmt.Errorf("failed to write temporary file: %w", err)
+	}
+
+	if err := tempFile.Close(); err != nil {
+		return false, fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
+	// Set permissions
+	if err := os.Chmod(tempPath, perm); err != nil {
+		return false, fmt.Errorf("failed to set permissions: %w", err)
+	}
+
+	// Atomic rename
+	if err := os.Rename(tempPath, destPath); err != nil {
+		return false, fmt.Errorf("failed to rename temporary file: %w", err)
+	}
+
+	return true, nil
+}
+
+// MigrateDirectory recursively copies all files from sourceDir to destDir.
+// If confirm is true, it asks for confirmation before overwriting existing files.
+// Returns a MigrationResult with statistics about the operation.
+func MigrateDirectory(sourceDir, destDir string, confirm bool) (*MigrationResult, error) {
+	result := &MigrationResult{}
+
+	// Check if source directory exists
+	if !DirExists(sourceDir) {
+		return result, fmt.Errorf("source directory does not exist: %s", sourceDir)
+	}
+
+	// Create destination directory
+	if err := os.MkdirAll(destDir, 0700); err != nil {
+		return result, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Walk the source directory
+	err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to access path %s: %w", path, err))
+			return nil // Continue walking
+		}
+
+		// Skip directories (we only migrate files)
+		if info.IsDir() {
+			return nil
+		}
+
+		// Skip .gitignore files
+		if info.Name() == ".gitignore" {
+			return nil
+		}
+
+		// Calculate relative path
+		relPath, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to calculate relative path for %s: %w", path, err))
+			return nil // Continue walking
+		}
+
+		// Calculate destination path
+		destPath := filepath.Join(destDir, relPath)
+
+		// Determine appropriate permissions (.py files get 0644, others might need different)
+		perm := os.FileMode(0644)
+		if strings.HasSuffix(path, ".py") {
+			perm = 0644
+		}
+
+		// Migrate the file
+		migrated, err := MigrateFile(path, destPath, perm, confirm)
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to migrate %s: %w", relPath, err))
+			return nil // Continue walking
+		}
+
+		if migrated {
+			result.Migrated++
+		} else {
+			result.Skipped++
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return result, fmt.Errorf("failed to walk source directory: %w", err)
+	}
+
+	return result, nil
+}

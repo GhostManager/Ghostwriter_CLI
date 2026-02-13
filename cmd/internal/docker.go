@@ -510,3 +510,117 @@ func (this DockerInterface) GetVersion() (string, error) {
 		return strings.Split(versionFile, "\n")[0], nil
 	}
 }
+
+// GetVolumeNameFromConfig extracts the actual volume name from the Docker Compose configuration.
+// The volumeKey is the logical name (e.g., "production_postgres_data").
+// Returns the actual Docker volume name (e.g., "ghostwriter_production_postgres_data").
+func (this DockerInterface) GetVolumeNameFromConfig(volumeKey string) (string, error) {
+	volumePath, err := yaml.PathString(fmt.Sprintf("$.volumes.%s.name", volumeKey))
+	if err != nil {
+		return "", fmt.Errorf("failed to create yaml path: %w", err)
+	}
+
+	config, err := this.RunCmdWithOutput("compose", "-f", this.ComposeFile, "config")
+	if err != nil {
+		return "", fmt.Errorf("failed to get compose config: %w", err)
+	}
+
+	var volumeName string
+	err = volumePath.Read(strings.NewReader(config), &volumeName)
+	if err != nil {
+		// Volume might not be explicitly named, try to construct it
+		projectName := this.GetComposeProjectName()
+		volumeName = fmt.Sprintf("%s_%s", projectName, volumeKey)
+	}
+
+	return volumeName, nil
+}
+
+// VerifyVolumeExists checks if a Docker volume with the given name exists.
+func (this DockerInterface) VerifyVolumeExists(volumeName string) bool {
+	err := this.RunCmd("volume", "inspect", volumeName)
+	return err == nil
+}
+
+// ListVolumes returns a list of Docker volumes matching the given name filter.
+// The filter can be a simple string that will be matched as a prefix.
+func (this DockerInterface) ListVolumes(nameFilter string) ([]string, error) {
+	out, err := this.RunCmdWithOutput("volume", "ls", "--format", "{{.Name}}")
+	if err != nil {
+		return nil, fmt.Errorf("failed to list volumes: %w", err)
+	}
+
+	var matchingVolumes []string
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.Contains(line, nameFilter) {
+			matchingVolumes = append(matchingVolumes, line)
+		}
+	}
+
+	return matchingVolumes, nil
+}
+
+// CopyVolume copies data from sourceVol to destVol using a temporary Alpine container.
+// This is useful for migrating data between volumes with different names.
+func (this DockerInterface) CopyVolume(sourceVol, destVol string) error {
+	// Verify source volume exists
+	if !this.VerifyVolumeExists(sourceVol) {
+		return fmt.Errorf("source volume does not exist: %s", sourceVol)
+	}
+
+	// Create destination volume if it doesn't exist
+	if !this.VerifyVolumeExists(destVol) {
+		if err := this.RunCmd("volume", "create", destVol); err != nil {
+			return fmt.Errorf("failed to create destination volume: %w", err)
+		}
+	}
+
+	// Use Alpine container to copy data
+	// Pattern from restore.go - mount both volumes and use cp -a to preserve permissions
+	fmt.Printf("    Copying %s → %s (this may take several minutes)...\n", sourceVol, destVol)
+
+	err := this.RunCmd("run", "--rm",
+		"-v", fmt.Sprintf("%s:/source:ro", sourceVol),
+		"-v", fmt.Sprintf("%s:/dest", destVol),
+		"alpine",
+		"sh", "-c",
+		"cp -a /source/. /dest/")
+
+	if err != nil {
+		return fmt.Errorf("failed to copy volume data: %w", err)
+	}
+
+	return nil
+}
+
+// VerifyVolumeCopy compares file counts between source and destination volumes.
+// Returns the file count in each volume and any error encountered.
+func (this DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, int, error) {
+	// Count files in source volume
+	sourceOut, err := this.RunCmdWithOutput("run", "--rm",
+		"-v", fmt.Sprintf("%s:/data:ro", sourceVol),
+		"alpine",
+		"sh", "-c",
+		"find /data -type f 2>/dev/null | wc -l")
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to count source files: %w", err)
+	}
+
+	// Count files in destination volume
+	destOut, err := this.RunCmdWithOutput("run", "--rm",
+		"-v", fmt.Sprintf("%s:/data:ro", destVol),
+		"alpine",
+		"sh", "-c",
+		"find /data -type f 2>/dev/null | wc -l")
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to count destination files: %w", err)
+	}
+
+	var sourceCount, destCount int
+	fmt.Sscanf(strings.TrimSpace(sourceOut), "%d", &sourceCount)
+	fmt.Sscanf(strings.TrimSpace(destOut), "%d", &destCount)
+
+	return sourceCount, destCount, nil
+}
