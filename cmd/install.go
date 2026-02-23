@@ -30,7 +30,7 @@ The command performs the following steps:
 * Creates a default admin user with a randomly generated password
 
 Running after initial installation will keep the existing configuration but fetch a new version
-(for --mode=production) or rebuild the containers (for --mode=local-*)
+(for --mode=prod) or rebuild the containers (for --mode=local-*)
 `,
 	Run: installGhostwriter,
 }
