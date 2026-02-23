@@ -57,4 +57,9 @@ func backup(dockerInterface *docker.DockerInterface) {
 	if err != nil {
 		log.Fatalf("Error trying to back up the PostgreSQL database with %s: %v\n", dockerInterface.ComposeFile, err)
 	}
+
+	err = dockerInterface.BackupMediaFiles()
+	if err != nil {
+		log.Fatalf("Error trying to back up media files with %s: %v\n", dockerInterface.ComposeFile, err)
+	}
 }

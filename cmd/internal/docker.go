@@ -624,3 +624,43 @@ func (this *DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, i
 
 	return sourceCount, destCount, nil
 }
+
+// BackupMediaFiles executes the "docker compose" command to back up the media files
+// to a tar.gz archive in the postgres_data_backups volume
+func (this *DockerInterface) BackupMediaFiles() error {
+	// Determine the volume names based on the environment
+	var dataVolume, backupVolume string
+	if this.UseDevInfra {
+		dataVolume = "ghostwriter_local_data"
+		backupVolume = "ghostwriter_local_postgres_data_backups"
+	} else if this.ManageComposeFile {
+		// ModeProd uses ghostwriter_sys prefix
+		dataVolume = "ghostwriter_sys_production_data"
+		backupVolume = "ghostwriter_sys_production_postgres_data_backups"
+	} else {
+		// ModeLocalProd uses ghostwriter prefix
+		dataVolume = "ghostwriter_production_data"
+		backupVolume = "ghostwriter_production_postgres_data_backups"
+	}
+
+	// Generate timestamp for backup filename
+	timestamp := time.Now().Format("2006_01_02T15_04_05")
+	backupFilename := fmt.Sprintf("media_backup_%s.tar.gz", timestamp)
+
+	fmt.Printf("[+] Running `%s` to back up media files from %s...\n", this.command, dataVolume)
+
+	// Create a tar.gz archive of the media volume and store it in the backups volume
+	// We use the postgres container because it has access to both volumes
+	err := this.RunComposeCmd("run", "--rm",
+		"-v", fmt.Sprintf("%s:/source:ro", dataVolume),
+		"-v", fmt.Sprintf("%s:/backups", backupVolume),
+		"postgres",
+		"sh", "-c",
+		fmt.Sprintf("tar czf /backups/%s -C /source .", backupFilename))
+	if err != nil {
+		return fmt.Errorf("failed to back up media files: %w", err)
+	}
+
+	fmt.Printf("[+] Media backup created: %s\n", backupFilename)
+	return nil
+}
