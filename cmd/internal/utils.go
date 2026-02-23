@@ -112,8 +112,16 @@ func GetRemoteVersion(owner string, repository string) (string, string, error) {
 		return "", "", jsonErr
 	}
 
-	tagName := githubJson["tag_name"].(string)
-	url := githubJson["html_url"].(string)
+	tagName, ok := githubJson["tag_name"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("tag_name field missing or not a string in GitHub API response")
+	}
+
+	url, ok := githubJson["html_url"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("html_url field missing or not a string in GitHub API response")
+	}
+
 	return tagName, url, nil
 }
 

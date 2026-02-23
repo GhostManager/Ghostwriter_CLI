@@ -81,7 +81,7 @@ func CheckLatestVersionNag(docker *DockerInterface) {
 		return
 	}
 
-	err := os.WriteFile(lastCheckFile, []byte(strconv.FormatInt(now, 10)), 0666)
+	err := os.WriteFile(lastCheckFile, []byte(strconv.FormatInt(now, 10)), 0600)
 	if err != nil {
 		fmt.Printf("[!] Could not write %s: %v", lastCheckFile, err)
 	}
