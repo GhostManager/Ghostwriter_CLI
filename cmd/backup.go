@@ -44,6 +44,11 @@ func backupDatabase(cmd *cobra.Command, args []string) {
 }
 
 func listBackups(dockerInterface *docker.DockerInterface) {
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
 	fmt.Printf("[+] Listing available PostgreSQL database backup files with %s...\n", dockerInterface.ComposeFile)
 	err := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "backups")
 	if err != nil {
@@ -52,6 +57,11 @@ func listBackups(dockerInterface *docker.DockerInterface) {
 }
 
 func backup(dockerInterface *docker.DockerInterface) {
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
 	fmt.Printf("[+] Backing up the PostgreSQL database with %s...\n", dockerInterface.ComposeFile)
 	err := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "backup")
 	if err != nil {

@@ -43,6 +43,12 @@ func init() {
 
 func restoreDatabase(cmd *cobra.Command, args []string) {
 	dockerInterface := docker.GetDockerInterface(mode)
+
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
 	confirmMsg := "Do you really want to restore this backup file? This cannot be undone!"
 	if mediaBackupFile != "" {
 		confirmMsg = "Do you really want to restore the database and media backups? This cannot be undone!"
@@ -76,19 +82,26 @@ func restore(dockerInterface *docker.DockerInterface, restore string) {
 }
 
 func mediaRestore(dockerInterface *docker.DockerInterface, restore string) {
-	// Determine the volume names based on the environment
-	var dataVolume, backupVolume string
+	// Determine the volume keys based on the environment
+	var dataVolumeKey, backupVolumeKey string
 	if dockerInterface.UseDevInfra {
-		dataVolume = "ghostwriter_local_data"
-		backupVolume = "ghostwriter_local_postgres_data_backups"
-	} else if dockerInterface.ManageComposeFile {
-		// ModeProd uses ghostwriter_sys prefix
-		dataVolume = "ghostwriter_sys_production_data"
-		backupVolume = "ghostwriter_sys_production_postgres_data_backups"
+		dataVolumeKey = "local_data"
+		backupVolumeKey = "local_postgres_data_backups"
 	} else {
-		// ModeLocalProd uses ghostwriter prefix
-		dataVolume = "ghostwriter_production_data"
-		backupVolume = "ghostwriter_production_postgres_data_backups"
+		// Both production modes use the same volume keys
+		dataVolumeKey = "production_data"
+		backupVolumeKey = "production_postgres_data_backups"
+	}
+
+	// Get actual volume names from Docker Compose configuration
+	dataVolume, err := dockerInterface.GetVolumeNameFromConfig(dataVolumeKey)
+	if err != nil {
+		log.Fatalf("Failed to get data volume name from compose config: %v\n", err)
+	}
+
+	backupVolume, err := dockerInterface.GetVolumeNameFromConfig(backupVolumeKey)
+	if err != nil {
+		log.Fatalf("Failed to get backup volume name from compose config: %v\n", err)
 	}
 
 	fmt.Printf("[+] Restoring media files from backup %s with %s...\n", restore, dockerInterface.ComposeFile)

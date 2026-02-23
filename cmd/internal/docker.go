@@ -30,6 +30,11 @@ var (
 		"ghostwriter_production_graphql", "ghostwriter_production_queue",
 		"ghostwriter_production_collab_server",
 	}
+	SysProdImages = []string{
+		"ghostwriter_django", "ghostwriter_nginx",
+		"ghostwriter_redis", "ghostwriter_postgres",
+		"ghostwriter_hasura", "ghostwriter_collab_server",
+	}
 	DevImages = []string{
 		"ghostwriter_local_django", "ghostwriter_local_redis",
 		"ghostwriter_local_postgres", "ghostwriter_local_graphql",
@@ -317,6 +322,19 @@ func (c Containers) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
+// containsImageName checks if a container's image path contains any of the image names
+// from the provided image lists. This handles both local builds and registry images.
+func containsImageName(containerImage string, imageLists ...[]string) bool {
+	for _, imageList := range imageLists {
+		for _, imageName := range imageList {
+			if strings.Contains(containerImage, imageName) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // Gets a list of all running docker containers (including outside of this project)
 func (this *DockerInterface) GetRunning() Containers {
 	var running Containers
@@ -333,7 +351,8 @@ func (this *DockerInterface) GetRunning() Containers {
 	}
 
 	for _, container := range containers.Items {
-		if Contains(DevImages, container.Image) || Contains(ProdImages, container.Image) {
+		// Check if the container image contains any of our known image names
+		if containsImageName(container.Image, DevImages, ProdImages, SysProdImages) {
 			running = append(running, Container{
 				container.ID, container.Image, container.Status, container.Ports, container.Labels["name"],
 			})
@@ -341,6 +360,46 @@ func (this *DockerInterface) GetRunning() Containers {
 	}
 
 	return running
+}
+
+// ValidateContainersRunning checks that Ghostwriter containers are running and match the current mode.
+// Returns an error with a user-friendly message if validation fails.
+func (this *DockerInterface) ValidateContainersRunning() error {
+	runningContainers := this.GetRunning()
+	if len(runningContainers) == 0 {
+		return fmt.Errorf("no Ghostwriter containers are running. Please start the containers with: `ghostwriter-cli up`")
+	}
+
+	// Check if the running containers match the current mode
+	var expectedImages []string
+	var modeDescription string
+
+	if this.UseDevInfra {
+		expectedImages = DevImages
+		modeDescription = "local development"
+	} else if this.ManageComposeFile {
+		// ModeProd uses ghostwriter_sys prefix
+		expectedImages = SysProdImages
+		modeDescription = "managed production"
+	} else {
+		// ModeLocalProd uses ghostwriter prefix
+		expectedImages = ProdImages
+		modeDescription = "local production"
+	}
+
+	hasMatchingContainers := false
+	for _, container := range runningContainers {
+		if containsImageName(container.Image, expectedImages) {
+			hasMatchingContainers = true
+			break
+		}
+	}
+
+	if !hasMatchingContainers {
+		return fmt.Errorf("running containers do not match the current mode (%s). Please ensure containers are started with the same `--mode` flag.", modeDescription)
+	}
+
+	return nil
 }
 
 // Gets logs from a container
@@ -628,19 +687,26 @@ func (this *DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, i
 // BackupMediaFiles executes the "docker compose" command to back up the media files
 // to a tar.gz archive in the postgres_data_backups volume
 func (this *DockerInterface) BackupMediaFiles() error {
-	// Determine the volume names based on the environment
-	var dataVolume, backupVolume string
+	// Determine the volume keys based on the environment
+	var dataVolumeKey, backupVolumeKey string
 	if this.UseDevInfra {
-		dataVolume = "ghostwriter_local_data"
-		backupVolume = "ghostwriter_local_postgres_data_backups"
-	} else if this.ManageComposeFile {
-		// ModeProd uses ghostwriter_sys prefix
-		dataVolume = "ghostwriter_sys_production_data"
-		backupVolume = "ghostwriter_sys_production_postgres_data_backups"
+		dataVolumeKey = "local_data"
+		backupVolumeKey = "local_postgres_data_backups"
 	} else {
-		// ModeLocalProd uses ghostwriter prefix
-		dataVolume = "ghostwriter_production_data"
-		backupVolume = "ghostwriter_production_postgres_data_backups"
+		// Both production modes use the same volume keys
+		dataVolumeKey = "production_data"
+		backupVolumeKey = "production_postgres_data_backups"
+	}
+
+	// Get actual volume names from Docker Compose configuration
+	dataVolume, err := this.GetVolumeNameFromConfig(dataVolumeKey)
+	if err != nil {
+		return fmt.Errorf("failed to get data volume name from compose config: %w", err)
+	}
+
+	backupVolume, err := this.GetVolumeNameFromConfig(backupVolumeKey)
+	if err != nil {
+		return fmt.Errorf("failed to get backup volume name from compose config: %w", err)
 	}
 
 	// Generate timestamp for backup filename
@@ -651,13 +717,13 @@ func (this *DockerInterface) BackupMediaFiles() error {
 
 	// Create a tar.gz archive of the media volume and store it in the backups volume
 	// We use the postgres container because it has access to both volumes
-	err := this.RunComposeCmd("run", "--rm",
+	runErr := this.RunComposeCmd("run", "--rm",
 		"-v", fmt.Sprintf("%s:/source:ro", dataVolume),
 		"-v", fmt.Sprintf("%s:/backups", backupVolume),
 		"postgres",
 		"sh", "-c",
 		fmt.Sprintf("tar czf /backups/%s -C /source .", backupFilename))
-	if err != nil {
+	if runErr != nil {
 		return fmt.Errorf("failed to back up media files: %w", err)
 	}
 
