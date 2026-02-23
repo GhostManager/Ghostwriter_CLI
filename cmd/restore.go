@@ -81,7 +81,12 @@ func mediaRestore(dockerInterface *docker.DockerInterface, restore string) {
 	if dockerInterface.UseDevInfra {
 		dataVolume = "ghostwriter_local_data"
 		backupVolume = "ghostwriter_local_postgres_data_backups"
+	} else if dockerInterface.ManageComposeFile {
+		// ModeProd uses ghostwriter_sys prefix
+		dataVolume = "ghostwriter_sys_production_data"
+		backupVolume = "ghostwriter_sys_production_postgres_data_backups"
 	} else {
+		// ModeLocalProd uses ghostwriter prefix
 		dataVolume = "ghostwriter_production_data"
 		backupVolume = "ghostwriter_production_postgres_data_backups"
 	}
