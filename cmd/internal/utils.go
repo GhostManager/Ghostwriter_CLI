@@ -87,42 +87,59 @@ func GetLocalGhostwriterVersion() (string, error) {
 	return output, nil
 }
 
+// githubReleaseResponse represents the GitHub API response for a release.
+type githubReleaseResponse struct {
+	TagName string `json:"tag_name"`
+	HtmlUrl string `json:"html_url"`
+}
+
 // GetRemoteVersion fetches the latest version information from GitHub's API for the given repository.
+// It includes proper headers to avoid rate limiting and uses struct-based unmarshaling for type safety.
 func GetRemoteVersion(owner string, repository string) (string, string, error) {
 	baseUrl := "https://api.github.com/repos/" + owner + "/" + repository + "/releases/latest"
-	client := http.Client{Timeout: time.Second * 10}
-	resp, err := client.Get(baseUrl)
+	client := &http.Client{Timeout: 30 * time.Second}
+
+	req, err := http.NewRequest("GET", baseUrl, nil)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("could not create request: %w", err)
+	}
+
+	// Add GitHub API headers to avoid rate limiting and ensure proper API version
+	req.Header.Add("User-Agent", "Ghostwriter-CLI")
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", fmt.Errorf("could not send request: %w", err)
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		return "", "", fmt.Errorf("unexpected HTTP status: %d", resp.StatusCode)
 	}
-	body, readErr := io.ReadAll(resp.Body)
-	if readErr != nil {
-		return "", "", readErr
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", fmt.Errorf("could not read response body: %w", err)
 	}
 
-	var githubJson map[string]interface{}
-	jsonErr := json.Unmarshal(body, &githubJson)
-	if jsonErr != nil {
-		return "", "", jsonErr
+	var response githubReleaseResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", "", fmt.Errorf("could not parse response body: %w", err)
 	}
 
-	tagName, ok := githubJson["tag_name"].(string)
-	if !ok {
-		return "", "", fmt.Errorf("tag_name field missing or not a string in GitHub API response")
+	if response.TagName == "" {
+		return "", "", fmt.Errorf("tag_name field missing or empty in GitHub API response")
+	}
+	if response.HtmlUrl == "" {
+		return "", "", fmt.Errorf("html_url field missing or empty in GitHub API response")
 	}
 
-	url, ok := githubJson["html_url"].(string)
-	if !ok {
-		return "", "", fmt.Errorf("html_url field missing or not a string in GitHub API response")
-	}
-
-	return tagName, url, nil
+	return response.TagName, response.HtmlUrl, nil
 }
 
 // Contains checks if a slice of strings ("slice" parameter) contains a given

@@ -1,54 +1,20 @@
 package internal
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 )
 
+// FetchLatestRelease fetches the latest Ghostwriter release tag from GitHub.
+// This is a convenience wrapper around GetRemoteVersion for the specific case
+// of checking the Ghostwriter repository.
 func FetchLatestRelease() (string, error) {
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/GhostManager/Ghostwriter/releases/latest", nil)
-	if err != nil {
-		return "", fmt.Errorf("Could not create request: %w", err)
-	}
-	req.Header.Add("User-Agent", "Ghostwriter-CLI")
-	req.Header.Add("Accept", "application/vnd.github+json")
-	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
-
-	res, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("Could not send request: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return "", errors.New(fmt.Sprintf("Got status code %d", res.StatusCode))
-	}
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read response body: %w", err)
-	}
-
-	var response githubReleaseResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return "", fmt.Errorf("Could not parse response body: %w", err)
-	}
-	return response.Tag, nil
-}
-
-type githubReleaseResponse struct {
-	Tag string `json:"tag_name"`
+	tag, _, err := GetRemoteVersion("GhostManager", "Ghostwriter")
+	return tag, err
 }
 
 func readLastVersionCheck(file string) int64 {
