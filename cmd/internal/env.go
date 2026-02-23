@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -53,7 +52,7 @@ func (this *GWEnvironment) Save() {
 		perm = info.Mode().Perm()
 	}
 
-	dir := path.Dir(this.filepath)
+	dir := filepath.Dir(this.filepath)
 	file, err := os.CreateTemp(dir, ".env")
 	if err != nil {
 		log.Fatalf("Could not create environmental variables file: %s\n", err)
