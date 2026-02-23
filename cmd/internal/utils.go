@@ -317,11 +317,8 @@ func MigrateDirectory(sourceDir, destDir string, confirm bool) (*MigrationResult
 		// Calculate destination path
 		destPath := filepath.Join(destDir, relPath)
 
-		// Determine appropriate permissions (.py files get 0644, others might need different)
+		// Use standard file permissions for migrated files
 		perm := os.FileMode(0644)
-		if strings.HasSuffix(path, ".py") {
-			perm = 0644
-		}
 
 		// Migrate the file
 		migrated, err := MigrateFile(path, destPath, perm, confirm)

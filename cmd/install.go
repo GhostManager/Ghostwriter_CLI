@@ -95,7 +95,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("Could write docker-compose.yml file: %w", err)
+		return fmt.Errorf("Could not write docker-compose.yml file: %w", err)
 	}
 	return nil
 }
