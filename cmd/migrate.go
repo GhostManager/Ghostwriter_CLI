@@ -333,6 +333,9 @@ func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (
 			}
 			// Stop containers again
 			dockerInterface.Down(nil)
+		} else {
+			fmt.Printf("    [!] Warning: Failed to start containers for backup: %v\n", err)
+			fmt.Println("    [!] Continuing without backup - you may want to create a manual backup")
 		}
 	}
 
