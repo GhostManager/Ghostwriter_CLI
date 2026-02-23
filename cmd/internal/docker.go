@@ -366,7 +366,6 @@ func (this *DockerInterface) FetchLogs(containerName string, lines string) []str
 				if err != nil {
 					log.Fatalf("Failed to get container logs: %v", err)
 				}
-				defer reader.Close()
 				// Reference: https://medium.com/@dhanushgopinath/reading-docker-container-logs-with-golang-docker-engine-api-702233fac044
 				p := make([]byte, 8)
 				_, err = reader.Read(p)
@@ -376,6 +375,7 @@ func (this *DockerInterface) FetchLogs(containerName string, lines string) []str
 					logs = append(logs, string(content))
 					_, err = reader.Read(p)
 				}
+				reader.Close()
 			}
 		}
 
@@ -383,7 +383,7 @@ func (this *DockerInterface) FetchLogs(containerName string, lines string) []str
 			logs = append(logs, fmt.Sprintf("\n*** No logs found for requested container '%s' ***\n", containerName))
 		}
 	} else {
-		fmt.Println("Failed to find that container")
+		fmt.Println("Failed to find that container running (try checking with `./ghostwriter-cli running`)")
 	}
 	return logs
 }
