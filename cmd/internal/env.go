@@ -78,11 +78,13 @@ func (this *GWEnvironment) Save() {
 	file.Sync()
 	err = file.Close()
 	if err != nil {
+		os.Remove(file.Name())
 		log.Fatalf("Could not write to environmental variables file: %s\n", err)
 	}
 
 	err = os.Rename(file.Name(), this.filepath)
 	if err != nil {
+		os.Remove(file.Name())
 		log.Fatalf("Could not save environmental variables: %s\n", err)
 	}
 
