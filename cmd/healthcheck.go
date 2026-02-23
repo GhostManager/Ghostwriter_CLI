@@ -167,6 +167,9 @@ func checkGhostwriterHealth(dockerInterface *docker.DockerInterface) (HealthIssu
 	req.Header.Set("Accept", "application/json")
 
 	res, getErr := client.Do(req)
+	if getErr != nil {
+		return issues, getErr
+	}
 
 	if res.Body != nil {
 		defer res.Body.Close()
@@ -174,9 +177,6 @@ func checkGhostwriterHealth(dockerInterface *docker.DockerInterface) (HealthIssu
 
 	if res.StatusCode != http.StatusOK {
 		return issues, errors.New("Non-OK HTTP status suggests an issue with the Django or Nginx services (Code " + strconv.Itoa(res.StatusCode) + ")")
-	}
-	if getErr != nil {
-		return issues, getErr
 	}
 
 	body, readErr := io.ReadAll(res.Body)
@@ -192,7 +192,13 @@ func checkGhostwriterHealth(dockerInterface *docker.DockerInterface) (HealthIssu
 
 	for key := range results {
 		if results[key] != "working" {
-			issues = append(issues, HealthIssue{"Service", key, results[key].(string)})
+			var statusMsg string
+			if str, ok := results[key].(string); ok {
+				statusMsg = str
+			} else {
+				statusMsg = fmt.Sprint(results[key])
+			}
+			issues = append(issues, HealthIssue{"Service", key, statusMsg})
 		}
 	}
 
