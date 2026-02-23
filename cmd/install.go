@@ -78,7 +78,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 
 	if res.StatusCode != 200 {
 		if res.StatusCode == 404 {
-			return fmt.Errorf("Could not get gw-cli.yml from github: status code %d\n(Ghostwriter-CLI cannot install versions of Ghostwriter older than v6.2.3 in `--mode=production`. If you're trying to install a version later than that, try updating Ghostwriter-CLI)", res.StatusCode)
+			return fmt.Errorf("Could not get gw-cli.yml from github: status code %d\n(Ghostwriter-CLI cannot install versions of Ghostwriter older than v6.2.3 in `--mode=prod`. If you're trying to install a version later than that, try updating Ghostwriter-CLI)", res.StatusCode)
 		}
 		return fmt.Errorf("Could not get gw-cli.yml from github: status code %d", res.StatusCode)
 	}
