@@ -322,7 +322,7 @@ func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (
 	}
 
 	// Create backup before migration
-	if docker.AskForConfirmation("Create safety backup before volume migration?") {
+	if docker.AskForConfirmation("Create safety backup of the current contents of the destination volumes before volume migration?") {
 		fmt.Println("    Creating backup (this may take a few minutes)...")
 		// Temporarily start containers for backup
 		if err := dockerInterface.Up(); err == nil {
