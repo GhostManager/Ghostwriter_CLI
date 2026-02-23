@@ -26,7 +26,10 @@ func ReadEnv(dir string) (*GWEnvironment, error) {
 	if err != nil {
 		return nil, err
 	}
-	file.Close()
+	err = file.Close()
+	if err != nil {
+		return nil, err
+	}
 
 	env := viper.New()
 	env.SetConfigType("env")
