@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	env "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"github.com/spf13/cobra"
 )
 
 // configCmd represents the config command
@@ -23,6 +25,11 @@ func init() {
 }
 
 func configDisplay(cmd *cobra.Command, args []string) {
+	env, err := internal.ReadEnv(internal.GetDockerDirFromMode(mode))
+	if err != nil {
+		log.Fatalf("Could not read environment file: %s\n", err)
+	}
+
 	// initialize tabwriter
 	writer := new(tabwriter.Writer)
 	// Set minwidth, tabwidth, padding, padchar, and flags
@@ -34,7 +41,7 @@ func configDisplay(cmd *cobra.Command, args []string) {
 	fmt.Fprintf(writer, "\n %s\t%s", "Setting", "Value")
 	fmt.Fprintf(writer, "\n %s\t%s", "–––––––", "–––––––")
 
-	configuration := env.GetConfigAll()
+	configuration := env.GetAll()
 	for _, config := range configuration {
 		if config.Val == "" {
 			config.Val = "–"

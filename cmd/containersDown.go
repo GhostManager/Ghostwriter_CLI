@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +17,7 @@ var containersDownCmd = &cobra.Command{
 	Long: `Bring down all Ghostwriter services and remove the containers. This
 performs the equivalent of running the "docker compose down" command.
 
-Production containers are targeted by default. Use the "--dev" flag to
+Production containers are targeted by default. Use the "--mode" argument to
 target development containers`,
 	Run: containersDown,
 }
@@ -27,12 +29,16 @@ func init() {
 }
 
 func containersDown(cmd *cobra.Command, args []string) {
-	docker.EvaluateDockerComposeStatus()
-	if dev {
+	dockerInterface := internal.GetDockerInterface(mode)
+	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Bringing down the development environment")
-		docker.RunDockerComposeDown("local.yml", volumes)
 	} else {
 		fmt.Println("[+] Bringing down the production environment")
-		docker.RunDockerComposeDown("production.yml", volumes)
+	}
+	err := dockerInterface.Down(&internal.DownOptions{
+		Volumes: volumes,
+	})
+	if err != nil {
+		log.Fatalf("Error trying to bring down the containers with %s: %v\n", dockerInterface.ComposeFile, err)
 	}
 }

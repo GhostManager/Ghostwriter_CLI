@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -31,30 +33,43 @@ func init() {
 }
 
 func backupDatabase(cmd *cobra.Command, args []string) {
-	dockerErr := docker.EvaluateDockerComposeStatus()
-	if dockerErr == nil {
-		if dev {
-			docker.SetDevMode()
-			if lst {
-				fmt.Println("[+] Getting a list of available backup files in the development environment")
-				docker.RunDockerComposeBackups("local.yml")
-			} else {
-				fmt.Println("[+] Backing up the PostgreSQL database for the development environment")
-				docker.RunDockerComposeBackup("local.yml")
-				fmt.Println("[+] Backing up media files for the development environment")
-				docker.RunDockerComposeMediaBackup("local.yml")
-			}
-		} else {
-			docker.SetProductionMode()
-			if lst {
-				fmt.Println("[+] Getting a list of available backup files in the production environment")
-				docker.RunDockerComposeBackups("production.yml")
-			} else {
-				fmt.Println("[+] Backing up the PostgreSQL database for the production environment")
-				docker.RunDockerComposeBackup("production.yml")
-				fmt.Println("[+] Backing up media files for the production environment")
-				docker.RunDockerComposeMediaBackup("production.yml")
-			}
-		}
+	dockerInterface := internal.GetDockerInterface(mode)
+	dockerInterface.Env.Save()
+
+	if lst {
+		listBackups(dockerInterface)
+	} else {
+		backup(dockerInterface)
+	}
+}
+
+func listBackups(dockerInterface *internal.DockerInterface) {
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	fmt.Printf("[+] Listing available PostgreSQL database backup files with %s...\n", dockerInterface.ComposeFile)
+	err := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "backups")
+	if err != nil {
+		log.Fatalf("Error trying to list backups files with %s: %v\n", dockerInterface.ComposeFile, err)
+	}
+}
+
+func backup(dockerInterface *internal.DockerInterface) {
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	fmt.Printf("[+] Backing up the PostgreSQL database with %s...\n", dockerInterface.ComposeFile)
+	err := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "backup")
+	if err != nil {
+		log.Fatalf("Error trying to back up the PostgreSQL database with %s: %v\n", dockerInterface.ComposeFile, err)
+	}
+
+	err = dockerInterface.BackupMediaFiles()
+	if err != nil {
+		log.Fatalf("Error trying to back up media files with %s: %v\n", dockerInterface.ComposeFile, err)
 	}
 }

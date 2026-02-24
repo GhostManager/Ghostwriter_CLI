@@ -8,12 +8,13 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	"github.com/Luzifer/go-dhparam"
 	"log"
 	"math/big"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/Luzifer/go-dhparam"
 )
 
 const (
@@ -77,12 +78,12 @@ func checkCerts(certPath string, keyPath string) error {
 }
 
 // Generate the TLS certificates and Diffie-Helman parameters file using Go.
-func generateCertificates() error {
-	certPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
-	keyPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
+func generateCertificates(path string) error {
+	certPath := filepath.Join(path, "ssl", "ghostwriter.crt")
+	keyPath := filepath.Join(path, "ssl", "ghostwriter.key")
 	if checkCerts(certPath, keyPath) == nil {
 		fmt.Printf("[!] Found existing certificate files, so new ones will not be generated...\n")
-		fmt.Printf("[*] Rename or delete ssl/ghostwriter.key and ssl/ghostwriter.key if you want to replace these keys")
+		fmt.Printf("[*] Rename or delete ssl/ghostwriter.key and ssl/ghostwriter.crt if you want to replace these keys\n")
 		return nil
 	}
 	fmt.Printf("[*] Did not find existing TLS/SSL certs for the Nginx container, so generating them now...\n")
@@ -157,9 +158,9 @@ func generateCertificates() error {
 }
 
 // GenerateCertificatePackage generate TLS certificates and Diffie-Helman parameters file using Go.
-func GenerateCertificatePackage() error {
+func GenerateCertificatePackage(path string) error {
 	// Ensure the ``ssl`` directory exists to receive the keys
-	sslPath := filepath.Join(GetCwdFromExe(), "ssl")
+	sslPath := filepath.Join(path, "ssl")
 	if !DirExists(sslPath) {
 		err := os.MkdirAll(sslPath, os.ModePerm)
 		if err != nil {
@@ -169,7 +170,7 @@ func GenerateCertificatePackage() error {
 	}
 
 	fmt.Println("[*] Generating new `ghostwriter.crt` and `ghostwriter.key` files")
-	certErr := generateCertificates()
+	certErr := generateCertificates(path)
 	if certErr != nil {
 		fmt.Printf("[!] Failed to generate TLS/SSL certificate files: %s\n", certErr)
 	}
@@ -177,6 +178,109 @@ func GenerateCertificatePackage() error {
 	dhErr := writeDHParams(sslPath, "dhparam")
 	if dhErr != nil {
 		fmt.Printf("[!] Failed to generate Diffie-Helman parameters: %s\n", dhErr)
+	}
+
+	return nil
+}
+
+// PrepareSettingsDirectory creates the settings directory for custom Django configuration files
+// and populates it with a helpful README if it doesn't already exist.
+func PrepareSettingsDirectory(path string) error {
+	settingsPath := filepath.Join(path, "settings")
+	readmePath := filepath.Join(settingsPath, "README.md")
+
+	// Create the settings directory if it doesn't exist
+	if !DirExists(settingsPath) {
+		err := os.MkdirAll(settingsPath, 0700)
+		if err != nil {
+			return fmt.Errorf("failed to create settings directory: %w", err)
+		}
+		fmt.Println("[+] Created settings directory for custom Django configuration")
+	}
+
+	// Create README if it doesn't exist
+	if !FileExists(readmePath) {
+		readmeContent := `# Custom Django Settings Directory
+
+This directory is for custom Django configuration files that will be loaded by Ghostwriter.
+
+## Purpose
+
+When using Ghostwriter with published container images (prod mode), you don't have a local
+codebase with the config/settings/production.d directory. This settings directory serves the
+same purpose, allowing you to customize Django settings without modifying the container images.
+
+## Usage
+
+Create Python files in this directory to override or extend Django settings. Files are loaded
+in alphabetical order, so you can use number prefixes to control the loading sequence.
+
+### File Naming Convention
+
+Use descriptive names with optional number prefixes:
+- ` + "`1-sso-config.py`" + `
+- ` + "`2-mail-config.py`" + `
+- ` + "`3-custom-settings.py`" + `
+
+### Example: SSO Configuration
+
+Create a file named ` + "`1-sso-provider.py`" + ` with content like:
+
+` + "```python" + `
+# Provider(s) configuration
+SOCIALACCOUNT_PROVIDERS = {
+    "microsoft": {
+        "APP": {
+            "client_id": "YOUR_CLIENT_ID",
+            "secret": "YOUR_SECRET",
+        }
+    },
+}
+
+# Extend the installed apps with the SSO app for your provider(s)
+SSO_PROVIDERS = ["allauth.socialaccount.providers.microsoft"]
+INSTALLED_APPS = INSTALLED_APPS + SSO_PROVIDERS
+` + "```" + `
+
+### Example: Email Configuration
+
+Create a file named ` + "`2-mail-config.py`" + ` with content like:
+
+` + "```python" + `
+# Email backend configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.example.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "your-email@example.com"
+EMAIL_HOST_PASSWORD = "your-password"
+DEFAULT_FROM_EMAIL = "noreply@example.com"
+` + "```" + `
+
+## Important Notes
+
+- These settings files are only loaded in **prod mode** (published container images)
+- For local-dev or local-prod modes, use the config/settings/local.d or production.d directories
+  in your local Ghostwriter codebase instead
+- Files must be valid Python syntax
+- Settings defined here override settings from the base configuration
+- Restart your containers after adding or modifying settings files
+
+## Security
+
+This directory has restrictive permissions (0700) to protect sensitive configuration data.
+Only the owner can read, write, or traverse this directory.
+
+## Documentation
+
+For more information, see the Ghostwriter documentation:
+https://www.ghostwriter.wiki/
+`
+		err := os.WriteFile(readmePath, []byte(readmeContent), 0600)
+		if err != nil {
+			return fmt.Errorf("failed to create settings README: %w", err)
+		}
+		fmt.Println("[+] Created README.md in settings directory")
 	}
 
 	return nil

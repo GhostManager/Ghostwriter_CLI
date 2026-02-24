@@ -5,9 +5,7 @@ package internal
 
 import (
 	"bufio"
-	"crypto/tls"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -15,31 +13,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 )
-
-// HealthIssue is a custom type for storing healthcheck output.
-type HealthIssue struct {
-	Type    string
-	Service string
-	Message string
-}
-
-type HealthIssues []HealthIssue
-
-func (c HealthIssues) Len() int {
-	return len(c)
-}
-
-func (c HealthIssues) Less(i, j int) bool {
-	return c[i].Service < c[j].Service
-}
-
-func (c HealthIssues) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
 
 // GetCwdFromExe gets the current working directory based on "ghostwriter-cli" location.
 func GetCwdFromExe() string {
@@ -81,54 +57,6 @@ func CheckPath(cmd string) bool {
 	return err == nil
 }
 
-// RunBasicCmd executes a given command ("name") with a list of arguments ("args")
-// and return a "string" with the output.
-func RunBasicCmd(name string, args []string) (string, error) {
-	out, err := exec.Command(name, args...).Output()
-	output := string(out[:])
-	return output, err
-}
-
-// RunRawCmd executes a given command ("name") with a list of arguments ("args")
-// Does not convert docker to docker compose like `RunCmd` does.
-func RunRawCmd(name string, args ...string) error {
-	path, err := exec.LookPath(name)
-	if err != nil {
-		log.Fatalf("`%s` is not installed or not available in the current PATH variable", name)
-	}
-	exe, err := os.Executable()
-	if err != nil {
-		log.Fatalf("Failed to get path to current executable")
-	}
-	exePath := filepath.Dir(exe)
-	command := exec.Command(path, args...)
-	command.Dir = exePath
-	command.Stdin = os.Stdin
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-
-	err = command.Start()
-	if err != nil {
-		log.Fatalf("Error trying to start `%s`: %v\n", name, err)
-	}
-	err = command.Wait()
-	if err != nil {
-		fmt.Printf("[-] Error from `%s`: %v\n", name, err)
-		return err
-	}
-	return nil
-}
-
-// RunCmd executes a given command ("name") with a list of arguments ("args")
-func RunCmd(name string, args []string) error {
-	// Prepend ``compose`` to the args for docker/podman commands
-	// dockerCmd will only be "docker" or "podman" (never "docker-compose")
-	if name == "docker" || name == "podman" {
-		args = append([]string{"compose"}, args...)
-	}
-	return RunRawCmd(name, args...)
-}
-
 // GetLocalGhostwriterVersion fetches the local Ghostwriter version from the "VERSION" file.
 func GetLocalGhostwriterVersion() (string, error) {
 	var output string
@@ -159,69 +87,59 @@ func GetLocalGhostwriterVersion() (string, error) {
 	return output, nil
 }
 
-// GetRemoteVersion fetches the latest version information from GitHub's API for the given repository.
-func GetRemoteVersion(owner string, repository string) (string, string, error) {
-	var output string
+// githubReleaseResponse represents the GitHub API response for a release.
+type githubReleaseResponse struct {
+	TagName string `json:"tag_name"`
+	HtmlUrl string `json:"html_url"`
+}
 
+// GetRemoteVersion fetches the latest version information from GitHub's API for the given repository.
+// It includes proper headers to avoid rate limiting and uses struct-based unmarshaling for type safety.
+func GetRemoteVersion(owner string, repository string) (string, string, error) {
 	baseUrl := "https://api.github.com/repos/" + owner + "/" + repository + "/releases/latest"
-	client := http.Client{Timeout: time.Second * 10}
-	resp, err := client.Get(baseUrl)
+	client := &http.Client{Timeout: 30 * time.Second}
+
+	req, err := http.NewRequest("GET", baseUrl, nil)
 	if err != nil {
-		return "", "", err
+		return "", "", fmt.Errorf("could not create request: %w", err)
+	}
+
+	// Add GitHub API headers to avoid rate limiting and ensure proper API version
+	req.Header.Add("User-Agent", "Ghostwriter-CLI")
+	req.Header.Add("Accept", "application/vnd.github+json")
+	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", fmt.Errorf("could not send request: %w", err)
 	}
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		return "", "", fmt.Errorf("unexpected HTTP status: %d", resp.StatusCode)
 	}
-	body, readErr := io.ReadAll(resp.Body)
-	if readErr != nil {
-		return "", "", readErr
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", fmt.Errorf("could not read response body: %w", err)
 	}
 
-	var githubJson map[string]interface{}
-	jsonErr := json.Unmarshal(body, &githubJson)
-	if jsonErr != nil {
-		return "", "", jsonErr
+	var response githubReleaseResponse
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", "", fmt.Errorf("could not parse response body: %w", err)
 	}
 
-	publishedAtRaw, ok := githubJson["published_at"]
-	if !ok {
-		return "", "", fmt.Errorf("missing 'published_at' in GitHub response")
+	if response.TagName == "" {
+		return "", "", fmt.Errorf("tag_name field missing or empty in GitHub API response")
 	}
-	publishedAt, ok := publishedAtRaw.(string)
-	if !ok {
-		return "", "", fmt.Errorf("'published_at' is not a string")
-	}
-	date, parseErr := time.Parse(time.RFC3339, publishedAt)
-	if parseErr != nil {
-		output = fmt.Sprintf("%s (published at: %s)", repository, publishedAt)
-	} else {
-		tagNameRaw, ok := githubJson["tag_name"]
-		if !ok {
-			return "", "", fmt.Errorf("missing 'tag_name' in GitHub response")
-		}
-		tagName, ok := tagNameRaw.(string)
-		if !ok {
-			return "", "", fmt.Errorf("'tag_name' is not a string")
-		}
-		formatted := date.Format("02 Jan 2006")
-		output = fmt.Sprintf(
-			"%s %s (%s)",
-			repository, tagName, formatted,
-		)
+	if response.HtmlUrl == "" {
+		return "", "", fmt.Errorf("html_url field missing or empty in GitHub API response")
 	}
 
-	urlRaw, ok := githubJson["html_url"]
-	if !ok {
-		return "", "", fmt.Errorf("missing 'html_url' in GitHub response")
-	}
-	url, ok := urlRaw.(string)
-	if !ok {
-		return "", "", fmt.Errorf("'html_url' is not a string")
-	}
-	return output, url, nil
+	return response.TagName, response.HtmlUrl, nil
 }
 
 // Contains checks if a slice of strings ("slice" parameter) contains a given
@@ -253,61 +171,6 @@ func quietTests() func() {
 	}
 }
 
-// CheckGhostwriterHealth fetches the latest health reports from Ghostwriter's status API endpoint.
-func CheckGhostwriterHealth(dev bool) (HealthIssues, error) {
-	var issues HealthIssues
-
-	protocol := "https"
-	port := "443"
-	if dev {
-		protocol = "http"
-		port = "8000"
-	}
-
-	baseUrl := protocol + "://localhost:" + port + "/status/"
-	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	client := http.Client{Timeout: time.Second * 2, Transport: transport}
-
-	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
-	if err != nil {
-		return issues, err
-	}
-
-	req.Header.Set("Accept", "application/json")
-
-	res, getErr := client.Do(req)
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	if res.StatusCode != http.StatusOK {
-		return issues, errors.New("Non-OK HTTP status suggests an issue with the Django or Nginx services (Code " + strconv.Itoa(res.StatusCode) + ")")
-	}
-	if getErr != nil {
-		return issues, getErr
-	}
-
-	body, readErr := io.ReadAll(res.Body)
-	if readErr != nil {
-		return issues, readErr
-	}
-
-	var results map[string]interface{}
-	jsonErr := json.Unmarshal(body, &results)
-	if jsonErr != nil {
-		return issues, jsonErr
-	}
-
-	for key := range results {
-		if results[key] != "working" {
-			issues = append(issues, HealthIssue{"Service", key, results[key].(string)})
-		}
-	}
-
-	return issues, nil
-}
-
 // AskForConfirmation asks the user for confirmation. A user must type in "yes" or "no" and
 // then press enter. It has fuzzy matching, so "y", "Y", "yes", "YES", and "Yes" all count as
 // confirmations. If the input is not recognized, it will ask again. The function does not return
@@ -332,4 +195,150 @@ func AskForConfirmation(s string) bool {
 			return false
 		}
 	}
+}
+
+// MigrationResult tracks the outcome of a migration operation.
+type MigrationResult struct {
+	Migrated int
+	Skipped  int
+	Failed   int
+	Errors   []error
+}
+
+// AddError adds an error to the migration result and increments the failure counter.
+func (r *MigrationResult) AddError(err error) {
+	r.Failed++
+	r.Errors = append(r.Errors, err)
+}
+
+// MigrateFile copies a file from source to destination with atomic write and permission handling.
+// If confirm is true and the destination exists, it asks the user for confirmation to overwrite.
+// Returns true if the file was migrated, false if it was skipped.
+func MigrateFile(sourcePath, destPath string, perm os.FileMode, confirm bool) (bool, error) {
+	// Check if source exists
+	if !FileExists(sourcePath) {
+		return false, fmt.Errorf("source file does not exist: %s", sourcePath)
+	}
+
+	// Check if destination exists
+	if FileExists(destPath) {
+		if confirm {
+			prompt := fmt.Sprintf("File %s already exists. Overwrite?", filepath.Base(destPath))
+			if !AskForConfirmation(prompt) {
+				return false, nil // Skipped by user
+			}
+		} else {
+			return false, nil // Skip without confirmation
+		}
+	}
+
+	// Ensure destination directory exists
+	destDir := filepath.Dir(destPath)
+	if err := os.MkdirAll(destDir, 0700); err != nil {
+		return false, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Read source file
+	data, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	// Write to temporary file first (atomic write pattern)
+	tempFile, err := os.CreateTemp(destDir, ".migrate-*")
+	if err != nil {
+		return false, fmt.Errorf("failed to create temporary file: %w", err)
+	}
+	tempPath := tempFile.Name()
+	defer os.Remove(tempPath) // Clean up temp file if something goes wrong
+
+	if _, err := tempFile.Write(data); err != nil {
+		tempFile.Close()
+		return false, fmt.Errorf("failed to write temporary file: %w", err)
+	}
+
+	if err := tempFile.Close(); err != nil {
+		return false, fmt.Errorf("failed to close temporary file: %w", err)
+	}
+
+	// Set permissions
+	if err := os.Chmod(tempPath, perm); err != nil {
+		return false, fmt.Errorf("failed to set permissions: %w", err)
+	}
+
+	// Atomic rename
+	if err := os.Rename(tempPath, destPath); err != nil {
+		return false, fmt.Errorf("failed to rename temporary file: %w", err)
+	}
+
+	return true, nil
+}
+
+// MigrateDirectory recursively copies all files from sourceDir to destDir.
+// If confirm is true, it asks for confirmation before overwriting existing files.
+// Returns a MigrationResult with statistics about the operation.
+func MigrateDirectory(sourceDir, destDir string, confirm bool) (*MigrationResult, error) {
+	result := &MigrationResult{}
+
+	// Check if source directory exists
+	if !DirExists(sourceDir) {
+		return result, fmt.Errorf("source directory does not exist: %s", sourceDir)
+	}
+
+	// Create destination directory
+	if err := os.MkdirAll(destDir, 0700); err != nil {
+		return result, fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Walk the source directory
+	err := filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to access path %s: %w", path, err))
+			return nil // Continue walking
+		}
+
+		// Skip directories (we only migrate files)
+		if info.IsDir() {
+			return nil
+		}
+
+		// Skip .gitignore files
+		if info.Name() == ".gitignore" {
+			return nil
+		}
+
+		// Calculate relative path
+		relPath, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to calculate relative path for %s: %w", path, err))
+			return nil // Continue walking
+		}
+
+		// Calculate destination path
+		destPath := filepath.Join(destDir, relPath)
+
+		// Use standard file permissions for migrated files
+		perm := os.FileMode(0644)
+
+		// Migrate the file
+		migrated, err := MigrateFile(path, destPath, perm, confirm)
+		if err != nil {
+			result.AddError(fmt.Errorf("failed to migrate %s: %w", relPath, err))
+			return nil // Continue walking
+		}
+
+		if migrated {
+			result.Migrated++
+		} else {
+			result.Skipped++
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return result, fmt.Errorf("failed to walk source directory: %w", err)
+	}
+
+	return result, nil
 }

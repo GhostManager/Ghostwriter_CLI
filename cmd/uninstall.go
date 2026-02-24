@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+	"os"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -29,15 +32,21 @@ func init() {
 }
 
 func uninstallGhostwriter(cmd *cobra.Command, args []string) {
-	docker.EvaluateDockerComposeStatus()
-	if dev {
+	dockerInterface := internal.GetDockerInterface(mode)
+	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Starting Ghostwriter development environment removal")
-		docker.SetDevMode()
-		docker.RunDockerComposeUninstall("local.yml")
 	} else {
 		fmt.Println("[+] Starting Ghostwriter production environment removal")
-		docker.SetProductionMode()
-		docker.RunDockerComposeUninstall("production.yml")
 	}
+	dockerInterface.Env.Save()
 
+	c := internal.AskForConfirmation("[!] This command removes all containers, images, and volume data for the target environment. Are you sure you want to uninstall?")
+	if !c {
+		os.Exit(0)
+	}
+	uninstallErr := dockerInterface.RunComposeCmd("down", "--rmi", "all", "-v", "--remove-orphans")
+	if uninstallErr != nil {
+		log.Fatalf("Error trying to uninstall with %s: %v\n", dockerInterface.ComposeFile, uninstallErr)
+	}
+	fmt.Println("[+] Uninstall was successful. You can re-install with `./ghostwriter-cli install`.")
 }

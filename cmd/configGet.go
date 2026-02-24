@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	env "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	"github.com/spf13/cobra"
+	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"github.com/spf13/cobra"
 )
 
 // configGetCmd represents the configGet command
@@ -32,16 +34,21 @@ func configGet(cmd *cobra.Command, args []string) {
 
 	defer writer.Flush()
 
+	env, err := internal.ReadEnv(internal.GetDockerDirFromMode(mode))
+	if err != nil {
+		log.Fatalf("Could not read environment file: %s\n", err)
+	}
+
 	fmt.Println("[+] Getting configuration values:")
 	fmt.Fprintf(writer, "\n %s\t%s", "Setting", "Value")
 	fmt.Fprintf(writer, "\n %s\t%s", "–––––––", "–––––––")
 
-	results := env.GetConfig(args)
-	for _, config := range results {
-		if config.Val == "" {
-			config.Val = "–"
+	for _, arg := range args {
+		val := env.Get(arg)
+		if val == "" {
+			val = "–"
 		}
-		fmt.Fprintf(writer, "\n %s\t%s", strings.ToUpper(config.Key), config.Val)
+		fmt.Fprintf(writer, "\n %s\t%s", strings.ToUpper(arg), val)
 	}
 	fmt.Fprintln(writer, "")
 }

@@ -1,22 +1,29 @@
 package internal
 
 import (
-	"github.com/stretchr/testify/assert"
+	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateCertificatePackage(t *testing.T) {
 	defer quietTests()()
+	tempDir, err := os.MkdirTemp("", "gotest")
+	if err != nil {
+		panic(err)
+	}
+	defer os.RemoveAll(tempDir)
 
 	t.Log("Testing `GenerateCertificatePackage()` and generating DH parameters can take several minutes...")
-	GenerateCertificatePackage()
+	GenerateCertificatePackage(tempDir)
 
 	// Paths we expect to exist after generating the certificate package
-	sslDir := filepath.Join(GetCwdFromExe(), "ssl")
-	dhPath := filepath.Join(GetCwdFromExe(), "ssl", "dhparam.pem")
-	keyPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.key")
-	crtPath := filepath.Join(GetCwdFromExe(), "ssl", "ghostwriter.crt")
+	sslDir := filepath.Join(tempDir, "ssl")
+	dhPath := filepath.Join(tempDir, "ssl", "dhparam.pem")
+	keyPath := filepath.Join(tempDir, "ssl", "ghostwriter.key")
+	crtPath := filepath.Join(tempDir, "ssl", "ghostwriter.crt")
 
 	// Test if the `ssl` folder exists
 	assert.True(t, DirExists(sslDir), "Expected `ssl` folder to exist")

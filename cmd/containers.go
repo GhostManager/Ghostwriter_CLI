@@ -11,7 +11,7 @@ var containersCmd = &cobra.Command{
 	Long: `Manage Ghostwriter containers and services with subcommands. By default, all
 subcommands target the production environment.
 
-If you're a developer, use the "--dev" flag to target the development environment.`,
+If you're a developer, use the "--mode" argument to target the development environment.`,
 }
 
 func init() {

@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +15,7 @@ var containersRestartCmd = &cobra.Command{
 	Long: `Restart all stopped and running Ghostwriter services. This performs
 the equivalent of running the "docker compose restart" command.
 
-Production containers are targeted by default. Use the "--dev" flag to
+Production containers are targeted by default. Use the "--mode" argument to
 target development containers`,
 	Run: containersRestart,
 }
@@ -23,12 +25,16 @@ func init() {
 }
 
 func containersRestart(cmd *cobra.Command, args []string) {
-	docker.EvaluateDockerComposeStatus()
-	if dev {
+	dockerInterface := internal.GetDockerInterface(mode)
+	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Restarting the development environment")
-		docker.RunDockerComposeRestart("local.yml")
 	} else {
 		fmt.Println("[+] Restarting the production environment")
-		docker.RunDockerComposeRestart("production.yml")
+	}
+
+	fmt.Printf("[+] Restarting containers with %s...\n", dockerInterface.ComposeFile)
+	startErr := dockerInterface.RunComposeCmd("restart")
+	if startErr != nil {
+		log.Fatalf("Error trying to restart the containers with %s: %v\n", dockerInterface.ComposeFile, startErr)
 	}
 }

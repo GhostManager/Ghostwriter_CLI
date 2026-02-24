@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	"github.com/spf13/cobra"
+	"log"
 	"os"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"github.com/spf13/cobra"
 )
 
 // containersUpCmd represents the up command
@@ -27,22 +29,25 @@ func init() {
 }
 
 func tagCleanUp(cmd *cobra.Command, args []string) {
-	var yamlFile string
-
-	docker.EvaluateDockerComposeStatus()
-	if dev {
+	dockerInterface := internal.GetDockerInterface(mode)
+	dockerInterface.Env.Save()
+	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Executing tag cleanup in the development environment...")
-		docker.SetDevMode()
-		yamlFile = "local.yml"
 	} else {
 		fmt.Println("[+] Executing tag cleanup in the production environment...")
-		docker.SetProductionMode()
-		yamlFile = "production.yml"
 	}
-	docker.RunManagementCmd(yamlFile, "deduplicate_tags")
-	c := docker.AskForConfirmation("[?] Do you want to also remove orphaned tags?")
+
+	err := dockerInterface.RunDjangoManageCommand("deduplicate_tags")
+	if err != nil {
+		log.Fatalf("Could not deduplicate tags: %s\n", err)
+	}
+
+	c := internal.AskForConfirmation("[?] Do you want to also remove orphaned tags?")
 	if !c {
 		os.Exit(0)
 	}
-	docker.RunManagementCmd(yamlFile, "remove_orphaned_tags")
+	err = dockerInterface.RunDjangoManageCommand("remove_orphaned_tags")
+	if err != nil {
+		log.Fatalf("Could not remove orphaned tags: %s\n", err)
+	}
 }

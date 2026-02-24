@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	certs "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +24,8 @@ func init() {
 }
 
 func createCertificates(cmd *cobra.Command, args []string) {
-	certErr := certs.GenerateCertificatePackage()
+	path := certs.GetDockerDirFromMode(mode)
+	certErr := certs.GenerateCertificatePackage(path)
 	if certErr == nil {
 		fmt.Println("[+] Certificate generation complete!")
 	}

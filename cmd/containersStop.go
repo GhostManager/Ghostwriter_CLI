@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +15,7 @@ var containersStopCmd = &cobra.Command{
 	Long: `Stop all Ghostwriter services without removing the containers. This
 performs the equivalent of running the "docker compose stop" command.
 
-Production containers are targeted by default. Use the "--dev" flag to
+Production containers are targeted by default. Use the "--mode" argument to
 target development containers`,
 	Run: containersStop,
 }
@@ -23,12 +25,16 @@ func init() {
 }
 
 func containersStop(cmd *cobra.Command, args []string) {
-	docker.EvaluateDockerComposeStatus()
-	if dev {
+	dockerInterface := internal.GetDockerInterface(mode)
+	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Stopping the development environment")
-		docker.RunDockerComposeStop("local.yml")
 	} else {
 		fmt.Println("[+] Stopping the production environment")
-		docker.RunDockerComposeStop("production.yml")
+	}
+
+	fmt.Printf("[+] Stopping services with %s...\n", dockerInterface.ComposeFile)
+	stopErr := dockerInterface.RunComposeCmd("stop")
+	if stopErr != nil {
+		log.Fatalf("Error trying to stop services with %s: %v\n", dockerInterface.ComposeFile, stopErr)
 	}
 }

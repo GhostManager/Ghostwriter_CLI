@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	env "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +32,11 @@ func init() {
 }
 
 func configTrustOrigin(cmd *cobra.Command, args []string) {
-	env.TrustOrigin(args[0])
+	env, err := internal.ReadEnv(internal.GetDockerDirFromMode(mode))
+	if err != nil {
+		log.Fatalf("Could not read environment file: %s\n", err)
+	}
+	env.AppendHost("django_csrf_trusted_origins", args[0])
+	env.Save()
 	fmt.Println("[+] Configuration successfully updated. Bring containers down and up for changes to take effect.")
 }

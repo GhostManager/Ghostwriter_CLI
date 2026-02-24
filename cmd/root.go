@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	env "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	"github.com/spf13/cobra"
 	"os"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"github.com/spf13/cobra"
 )
 
 // Vars for global flags
-var dev bool
+var mode internal.DockerMode = internal.ModeProd
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -27,9 +28,6 @@ func Execute() {
 }
 
 func init() {
-	// Create or parse the Docker ``.env`` file
-	env.ParseGhostwriterEnvironmentVariables()
-
 	// Persistent flags defined here are global for the CLI
-	rootCmd.PersistentFlags().BoolVar(&dev, "dev", false, `Target the development environment for "install" and "containers" commands.`)
+	rootCmd.PersistentFlags().Var(&mode, "mode", "Set execution mode, one of: `prod` (default; downloads Ghostwriter images), `local-dev`, or `local-prod` (local modes uses the Ghostwriter source code in same directory)")
 }

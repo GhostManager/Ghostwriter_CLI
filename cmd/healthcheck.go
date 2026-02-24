@@ -1,12 +1,22 @@
 package cmd
 
 import (
+	"context"
+	"crypto/tls"
+	"encoding/json"
+	"errors"
 	"fmt"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	utils "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
-	"github.com/spf13/cobra"
+	"io"
+	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"text/tabwriter"
+	"time"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"github.com/moby/moby/client"
+	"github.com/spf13/cobra"
 )
 
 // healthcheckCmd represents the healthcheck command
@@ -25,7 +35,7 @@ func init() {
 }
 
 func runHealthcheck(cmd *cobra.Command, args []string) {
-	docker.EvaluateDockerComposeStatus()
+	dockerInterface := internal.GetDockerInterface(mode)
 	// initialize tabwriter
 	writer := new(tabwriter.Writer)
 	// Set minwidth, tabwidth, padding, padchar, and flags
@@ -35,7 +45,7 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 
 	fmt.Println("[+] Checking Ghostwriter containers and their respective health checks...")
 
-	containerIssues, dockerErr := docker.CheckDockerHealth(dev)
+	containerIssues, dockerErr := checkDockerHealth(dockerInterface)
 
 	if dockerErr != nil {
 		fmt.Printf("[!] Failed to get container information from Docker: %s\n", dockerErr)
@@ -51,7 +61,7 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 			}
 		} else {
 			fmt.Println("[*] Identified zero container issues, now testing services...")
-			serviceIssues, svcErr := utils.CheckGhostwriterHealth(dev)
+			serviceIssues, svcErr := checkGhostwriterHealth(dockerInterface)
 			if svcErr != nil {
 				fmt.Printf("[!] Failed to get health status from Ghostwriter's /status/ endpoint: %s\n", svcErr)
 			} else {
@@ -70,4 +80,140 @@ func runHealthcheck(cmd *cobra.Command, args []string) {
 			}
 		}
 	}
+}
+
+type HealthIssue struct {
+	Type    string
+	Service string
+	Message string
+}
+
+type HealthIssues []HealthIssue
+
+func (c HealthIssues) Len() int {
+	return len(c)
+}
+
+func (c HealthIssues) Less(i, j int) bool {
+	return c[i].Service < c[j].Service
+}
+
+func (c HealthIssues) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func checkDockerHealth(dockerInterface *internal.DockerInterface) (HealthIssues, error) {
+	var found []string
+	var imageName string
+	var issues HealthIssues
+
+	var requiredImages []string
+	if dockerInterface.UseDevInfra {
+		requiredImages = internal.DevImages
+	} else if dockerInterface.ManageComposeFile {
+		requiredImages = internal.SysProdImages
+	} else {
+		requiredImages = internal.ProdImages
+	}
+
+	// Check running containers to make sure every necessary container is up
+	cli, err := dockerInterface.GetDaemonClient()
+	if err != nil {
+		return issues, err
+	}
+
+	containers, err := cli.ContainerList(context.Background(), client.ContainerListOptions{
+		All: false,
+	})
+	if err != nil {
+		return issues, err
+	}
+
+	if len(containers.Items) > 0 {
+		for _, container := range containers.Items {
+			// Use substring matching to handle both local builds and registry images
+			for _, imgName := range append(append(internal.DevImages, internal.ProdImages...), internal.SysProdImages...) {
+				if strings.Contains(container.Image, imgName) {
+					found = append(found, imgName)
+					break
+				}
+			}
+		}
+		for _, image := range requiredImages {
+			if !internal.Contains(found, image) {
+				imageName = strings.ToUpper(image[strings.LastIndex(image, "_")+1:])
+				issues = append(issues, HealthIssue{"Container", imageName, "Container is not running"})
+			}
+		}
+	} else {
+		issues = append(issues, HealthIssue{"Container", "ALL", "No Ghostwriter containers are running"})
+	}
+
+	return issues, nil
+}
+
+// CheckGhostwriterHealth fetches the latest health reports from Ghostwriter's status API endpoint.
+func checkGhostwriterHealth(dockerInterface *internal.DockerInterface) (HealthIssues, error) {
+	var issues HealthIssues
+
+	protocol := "https"
+	port := "443"
+	if dockerInterface.UseDevInfra {
+		protocol = "http"
+		port = "8000"
+	}
+
+	baseUrl := protocol + "://localhost:" + port + "/status/"
+	transport := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := http.Client{Timeout: time.Second * 2, Transport: transport}
+
+	req, err := http.NewRequest(http.MethodGet, baseUrl, nil)
+	if err != nil {
+		return issues, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+
+	res, getErr := client.Do(req)
+	if getErr != nil {
+		return issues, getErr
+	}
+
+	// Check if response is nil (can happen in edge cases)
+	if res == nil {
+		return issues, errors.New("received nil response from HTTP request")
+	}
+
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return issues, errors.New("Non-OK HTTP status suggests an issue with the Django or Nginx services (Code " + strconv.Itoa(res.StatusCode) + ")")
+	}
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		return issues, readErr
+	}
+
+	var results map[string]interface{}
+	jsonErr := json.Unmarshal(body, &results)
+	if jsonErr != nil {
+		return issues, jsonErr
+	}
+
+	for key := range results {
+		if results[key] != "working" {
+			var statusMsg string
+			if str, ok := results[key].(string); ok {
+				statusMsg = str
+			} else {
+				statusMsg = fmt.Sprint(results[key])
+			}
+			issues = append(issues, HealthIssue{"Service", key, statusMsg})
+		}
+	}
+
+	return issues, nil
 }

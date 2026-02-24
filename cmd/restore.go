@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"strings"
+
 	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var mediaBackupFile string
@@ -39,37 +41,95 @@ func init() {
 }
 
 func restoreDatabase(cmd *cobra.Command, args []string) {
-	dockerErr := internal.EvaluateDockerComposeStatus()
-	if dockerErr == nil {
-		confirmMsg := "Do you really want to restore this backup file? This cannot be undone!"
-		if mediaBackupFile != "" {
-			confirmMsg = "Do you really want to restore the database and media backups? This cannot be undone!"
-		}
-		c := internal.AskForConfirmation(confirmMsg)
-		if c {
-			if dev {
-				internal.SetDevMode()
-				fmt.Printf("[+] Restoring the `%s` database backup file in the development environment...\n", args[0])
-				internal.RunDockerComposeRestore("local.yml", args[0])
-				if mediaBackupFile != "" {
-					if !strings.HasPrefix(mediaBackupFile, "media_backup_") {
-						fmt.Println("[!] Warning: Media backup filename should start with 'media_backup_'")
-					}
-					fmt.Printf("[+] Restoring the `%s` media backup file in the development environment...\n", mediaBackupFile)
-					internal.RunDockerComposeMediaRestore("local.yml", mediaBackupFile)
-				}
-			} else {
-				internal.SetProductionMode()
-				fmt.Printf("[+] Restoring the `%s` database backup file in the production environment...\n", args[0])
-				internal.RunDockerComposeRestore("production.yml", args[0])
-				if mediaBackupFile != "" {
-					if !strings.HasPrefix(mediaBackupFile, "media_backup_") {
-						fmt.Println("[!] Warning: Media backup filename should start with 'media_backup_'")
-					}
-					fmt.Printf("[+] Restoring the `%s` media backup file in the production environment...\n", mediaBackupFile)
-					internal.RunDockerComposeMediaRestore("production.yml", mediaBackupFile)
-				}
-			}
-		}
+	dockerInterface := internal.GetDockerInterface(mode)
+
+	// Validate that containers are running and match the current mode
+	if err := dockerInterface.ValidateContainersRunning(); err != nil {
+		log.Fatalf("%v\n", err)
 	}
+
+	confirmMsg := "Do you really want to restore this backup file? This cannot be undone!"
+	if mediaBackupFile != "" {
+		confirmMsg = "Do you really want to restore the database and media backups? This cannot be undone!"
+	}
+	c := internal.AskForConfirmation(confirmMsg)
+	if !c {
+		return
+	}
+
+	dockerInterface.Env.Save()
+
+	fmt.Printf("[+] Restoring the `%s` database backup file...\n", args[0])
+	restore(dockerInterface, args[0])
+	if mediaBackupFile != "" {
+		if !strings.HasPrefix(mediaBackupFile, "media_backup_") {
+			fmt.Println("[!] Warning: Media backup filename should start with 'media_backup_'")
+		}
+		fmt.Printf("[+] Restoring the `%s` media backup file...\n", mediaBackupFile)
+		mediaRestore(dockerInterface, mediaBackupFile)
+	}
+}
+
+// RunDockerComposeRestore executes the "docker compose" command to restore a PostgreSQL database backup in the
+// environment from the specified YAML file ("yaml" parameter).
+func restore(dockerInterface *internal.DockerInterface, restore string) {
+	fmt.Printf("[+] Restoring the PostgreSQL database backup file %s with %s...\n", restore, dockerInterface.ComposeFile)
+	backupErr := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "restore", restore)
+	if backupErr != nil {
+		log.Fatalf("Error trying to restore %s with %s: %v\n", restore, dockerInterface.ComposeFile, backupErr)
+	}
+}
+
+func mediaRestore(dockerInterface *internal.DockerInterface, restore string) {
+	// Determine the volume keys based on the environment
+	var dataVolumeKey, backupVolumeKey string
+	if dockerInterface.UseDevInfra {
+		dataVolumeKey = "local_data"
+		backupVolumeKey = "local_postgres_data_backups"
+	} else {
+		// Both production modes use the same volume keys
+		dataVolumeKey = "production_data"
+		backupVolumeKey = "production_postgres_data_backups"
+	}
+
+	// Get actual volume names from Docker Compose configuration
+	dataVolume, err := dockerInterface.GetVolumeNameFromConfig(dataVolumeKey)
+	if err != nil {
+		log.Fatalf("Failed to get data volume name from compose config: %v\n", err)
+	}
+
+	backupVolume, err := dockerInterface.GetVolumeNameFromConfig(backupVolumeKey)
+	if err != nil {
+		log.Fatalf("Failed to get backup volume name from compose config: %v\n", err)
+	}
+
+	fmt.Printf("[+] Restoring media files from backup %s with %s...\n", restore, dockerInterface.ComposeFile)
+
+	// First, clear the existing media files
+	fmt.Println("[+] Clearing existing media files...")
+	clearErr := dockerInterface.RunComposeCmd(
+		"run", "--rm",
+		"-v", fmt.Sprintf("%s:/data", dataVolume),
+		"postgres",
+		"sh", "-c",
+		"rm -rf /data/* /data/..?* /data/.[!.]*",
+	)
+	if clearErr != nil {
+		log.Fatalf("Error trying to clear existing media files with %s: %v\n", dockerInterface.ComposeFile, clearErr)
+	}
+
+	// Extract the backup archive to the media volume
+	fmt.Println("[+] Extracting media backup...")
+	restoreErr := dockerInterface.RunComposeCmd(
+		"run", "--rm",
+		"-v", fmt.Sprintf("%s:/data", dataVolume),
+		"-v", fmt.Sprintf("%s:/backups:ro", backupVolume),
+		"postgres",
+		"sh", "-c",
+		fmt.Sprintf("tar xzf /backups/%s -C /data", restore),
+	)
+	if restoreErr != nil {
+		log.Fatalf("Error trying to restore media files from %s with %s: %v\n", restore, dockerInterface.ComposeFile, restoreErr)
+	}
+	fmt.Printf("[+] Media files restored from %s\n", restore)
 }

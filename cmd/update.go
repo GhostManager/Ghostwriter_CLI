@@ -2,50 +2,84 @@ package cmd
 
 import (
 	"fmt"
-	utils "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	"log"
+
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
-	"os"
-	"text/tabwriter"
 )
+
+var updateVersion string
 
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Displays version information for Ghostwriter",
-	Long: `Displays version information for Ghostwriter. The local version
-information comes from the local "VERSION" file. The latest release
-information is pulled from GitHub's API.`,
-	RunE: compareVersions,
+	Short: "Updates and sets up Ghostwriter",
+	Long: `Installs and sets up Ghostwriter.
+
+By default, Ghostwriter will download and install the latest version to an application data directory.
+Use the '--version' flag to specify a specific version to update to.
+
+If a local '--mode' is specified instead, this command will rebuild the containers and migrate/reseed
+the database, but won't actually download a new version (use git fetch+checkout instead).
+`,
+	Aliases: []string{"upgrade"},
+	Run:     updateGhostwriter,
 }
 
 func init() {
+	updateCmd.PersistentFlags().StringVar(
+		&updateVersion,
+		"version",
+		"",
+		"Version to install. Defaults to the latest tagged release. Ignored for --mode=local-*. NOTE: downgrading is not supported.",
+	)
 	rootCmd.AddCommand(updateCmd)
 }
 
-func compareVersions(cmd *cobra.Command, args []string) error {
-	// initialize tabwriter
-	writer := new(tabwriter.Writer)
-	// Set minwidth, tabwidth, padding, padchar, and flags
-	writer.Init(os.Stdout, 8, 8, 1, '\t', 0)
+func updateGhostwriter(cmd *cobra.Command, args []string) {
+	var err error
 
-	defer writer.Flush()
-
-	fmt.Println("[+] Fetching latest version information:")
-
-	localVersion, localErr := utils.GetLocalGhostwriterVersion()
-	if localErr != nil {
-		return localErr
+	if mode == internal.ModeProd {
+		// Fetch and write docker-compose.yml file
+		err = fetchAndWriteComposeFile(mode, updateVersion)
+		if err != nil {
+			log.Fatalf("%v", err)
+		}
 	}
 
-	fmt.Fprintf(writer, "\nLocal Version\t%s\n", localVersion)
-
-	remoteVersion, htmlUrl, remoteErr := utils.GetRemoteVersion("GhostManager", "Ghostwriter")
-	if remoteErr != nil {
-		return remoteErr
+	// Get interface
+	dockerInterface := internal.GetDockerInterface(mode)
+	dockerInterface.Env.Save()
+	if dockerInterface.UseDevInfra {
+		fmt.Println("[+] Starting development environment update")
+	} else {
+		fmt.Println("[+] Starting production environment update")
+		internal.PrepareSettingsDirectory(dockerInterface.Dir)
 	}
 
-	fmt.Fprintf(writer, "Latest Release\t%s\n", remoteVersion)
-	fmt.Fprintf(writer, "Latest Release URL\t%s\n", htmlUrl)
+	fmt.Println("[+] Tearing down containers...")
+	err = dockerInterface.Down(&internal.DownOptions{
+		RemoveOrphans: true,
+	})
+	if err != nil {
+		log.Fatalf("Could not tear down containers: %v", err)
+	}
 
-	return nil
+	err = updateContainers(*dockerInterface)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+
+	fmt.Println("[+] Ghostwriter update complete!")
+
+	if !internal.AskForConfirmation("Would you like to keep the containers running?") {
+		fmt.Println("[*] OK, bringing down containers...")
+		err = dockerInterface.Down(nil)
+		if err != nil {
+			log.Fatalf("Error bringing down containers: %s\n", err)
+		}
+		fmt.Println("[*] All containers are down. Run 'ghostwriter-cli up' when you're ready to start Ghostwriter.")
+	} else {
+		fmt.Println("[+] Ghostwriter is ready to go!")
+	}
 }
