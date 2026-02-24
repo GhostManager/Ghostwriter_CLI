@@ -426,7 +426,7 @@ func (this *DockerInterface) FetchLogs(containerName string, lines string) []str
 					log.Fatalf("Failed to get container logs: %v", err)
 				}
 				defer reader.Close()
-				
+
 				// Reference: https://medium.com/@dhanushgopinath/reading-docker-container-logs-with-golang-docker-engine-api-702233fac044
 				p := make([]byte, 8)
 				_, err = reader.Read(p)
@@ -679,8 +679,12 @@ func (this *DockerInterface) VerifyVolumeCopy(sourceVol, destVol string) (int, i
 	}
 
 	var sourceCount, destCount int
-	fmt.Sscanf(strings.TrimSpace(sourceOut), "%d", &sourceCount)
-	fmt.Sscanf(strings.TrimSpace(destOut), "%d", &destCount)
+	if _, err := fmt.Sscanf(strings.TrimSpace(sourceOut), "%d", &sourceCount); err != nil {
+		return 0, 0, fmt.Errorf("failed to parse source file count from output '%s': %w", strings.TrimSpace(sourceOut), err)
+	}
+	if _, err := fmt.Sscanf(strings.TrimSpace(destOut), "%d", &destCount); err != nil {
+		return 0, 0, fmt.Errorf("failed to parse destination file count from output '%s': %w", strings.TrimSpace(destOut), err)
+	}
 
 	return sourceCount, destCount, nil
 }
