@@ -66,7 +66,7 @@ func CheckLatestVersionNag(docker *DockerInterface) {
 	if localVersion != remoteVersion {
 		fmt.Printf("[!] The latest release of Ghostwriter is version %s - the currently installed version is %s\n", remoteVersion, localVersion)
 		if docker.ManageComposeFile {
-			fmt.Print("[!] Run the `install` command to update to the latest version\n")
+			fmt.Print("[!] Run the `update` command to update to the latest version\n")
 		}
 	}
 }
