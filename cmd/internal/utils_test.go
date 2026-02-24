@@ -52,6 +52,12 @@ func TestGetLocalGhostwriterVersion(t *testing.T) {
 func TestGetRemoteVersion(t *testing.T) {
 	// Test reading the version data from GitHub's API
 	version, url, err := GetRemoteVersion("GhostManager", "Ghostwriter")
+	
+	// Skip test if we hit GitHub API rate limiting (common in CI environments)
+	if err != nil && strings.Contains(err.Error(), "403") {
+		t.Skip("Skipping test due to GitHub API rate limiting (HTTP 403)")
+	}
+	
 	assert.NoError(t, err, "Expected `GetRemoteVersion()` to return no error")
 	assert.NotEmpty(t, version, "Expected `GetRemoteVersion()` to return a non-empty version string")
 	assert.True(
