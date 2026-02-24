@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
@@ -57,6 +58,12 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 	if version == "" {
 		url = "https://github.com/GhostManager/Ghostwriter/releases/latest/download/gw-cli.yml"
 	} else {
+		// Validate version format to prevent path traversal or malicious content
+		versionPattern := regexp.MustCompile(`^v\d+\.\d+\.\d+$`)
+		if !versionPattern.MatchString(version) {
+			return fmt.Errorf("invalid version format '%s': expected format like v1.2.3", version)
+		}
+		fmt.Printf("[+] Fetching docker-compose.yml for version %s\n", version)
 		url = "https://github.com/GhostManager/Ghostwriter/releases/download/" + version + "/gw-cli.yml"
 	}
 
