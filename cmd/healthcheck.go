@@ -107,9 +107,13 @@ func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, e
 	var imageName string
 	var issues HealthIssues
 
-	requiredImages := docker.ProdImages
+	var requiredImages []string
 	if dockerInterface.UseDevInfra {
 		requiredImages = docker.DevImages
+	} else if dockerInterface.ManageComposeFile {
+		requiredImages = docker.SysProdImages
+	} else {
+		requiredImages = docker.ProdImages
 	}
 
 	// Check running containers to make sure every necessary container is up
@@ -127,8 +131,12 @@ func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, e
 
 	if len(containers.Items) > 0 {
 		for _, container := range containers.Items {
-			if docker.Contains(docker.DevImages, container.Image) || docker.Contains(docker.ProdImages, container.Image) {
-				found = append(found, container.Image)
+			// Use substring matching to handle both local builds and registry images
+			for _, imgName := range append(append(docker.DevImages, docker.ProdImages...), docker.SysProdImages...) {
+				if strings.Contains(container.Image, imgName) {
+					found = append(found, imgName)
+					break
+				}
 			}
 		}
 		for _, image := range requiredImages {
@@ -169,6 +177,11 @@ func checkGhostwriterHealth(dockerInterface *docker.DockerInterface) (HealthIssu
 	res, getErr := client.Do(req)
 	if getErr != nil {
 		return issues, getErr
+	}
+
+	// Check if response is nil (can happen in edge cases)
+	if res == nil {
+		return issues, errors.New("received nil response from HTTP request")
 	}
 
 	if res.Body != nil {
