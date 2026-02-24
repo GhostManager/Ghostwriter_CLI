@@ -77,7 +77,5 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 		fmt.Println("[!] Using the `latest` tag is not recommended - pulling containers will not apply necessary changes to the docker-compose.yml file")
 	}
 
-	writer.Flush()
-
 	return nil
 }
