@@ -553,9 +553,9 @@ func (this *DockerInterface) GetVersion() (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("Could not list docker images: %w", err)
 		}
-		re := regexp.MustCompile(`^[^\:]+:([^\n]+)`)
+		re := regexp.MustCompile(`^[^:]+:([^\n]+)`)
 		captures := re.FindStringSubmatch(out)
-		if captures == nil || len(captures) < 2 {
+		if len(captures) < 2 {
 			return "", fmt.Errorf("Could not find version number in docker images")
 		}
 		return captures[1], nil
@@ -724,7 +724,7 @@ func (this *DockerInterface) BackupMediaFiles() error {
 		"sh", "-c",
 		fmt.Sprintf("tar czf /backups/%s -C /source .", backupFilename))
 	if runErr != nil {
-		return fmt.Errorf("failed to back up media files: %w", err)
+		return fmt.Errorf("failed to back up media files: %w", runErr)
 	}
 
 	fmt.Printf("[+] Media backup created: %s\n", backupFilename)
