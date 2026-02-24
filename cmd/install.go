@@ -124,6 +124,15 @@ func updateContainers(dockerInterface docker.DockerInterface) error {
 		}
 	}
 
+	fmt.Println("[+] Starting containers...")
+	err = dockerInterface.Up()
+	if err != nil {
+		return fmt.Errorf("Could not start containers: %w", err)
+	}
+
+	fmt.Println("[+] Waiting for Django to be ready...")
+	dockerInterface.WaitForDjango()
+
 	fmt.Println("[+] Migrating database...")
 	err = dockerInterface.RunDjangoManageCommand("migrate")
 	if err != nil {
@@ -131,9 +140,9 @@ func updateContainers(dockerInterface docker.DockerInterface) error {
 	}
 
 	fmt.Println("[+] Seeding database with initial data...")
-	seedErr := dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
-	if seedErr != nil {
-		return fmt.Errorf("Could not seed database: %w", seedErr)
+	err = dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
+	if err != nil {
+		return fmt.Errorf("Could not seed database: %w", err)
 	}
 
 	return nil
@@ -172,12 +181,6 @@ func installGhostwriter(cmd *cobra.Command, args []string) {
 	if userErr != nil {
 		log.Printf("Error trying to create a superuser: %v\n", userErr)
 		log.Println("Error may occur if you've run `install` before or made a superuser manually")
-	}
-
-	fmt.Println("[+] Starting containers...")
-	err = dockerInterface.Up()
-	if err != nil {
-		log.Fatalf("Error bringing containers up: %s\n", err)
 	}
 
 	fmt.Println("[+] Ghostwriter is ready to go!")
