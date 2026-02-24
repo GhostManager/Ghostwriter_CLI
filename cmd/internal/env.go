@@ -122,6 +122,16 @@ func (this *GWEnvironment) Set(key string, val string) {
 func (this *GWEnvironment) AppendHost(key string, host string) {
 	value := this.Get(key)
 	values := strings.Split(value, " ")
+
+	// Filter out empty strings
+	filtered := []string{}
+	for _, v := range values {
+		if v != "" {
+			filtered = append(filtered, v)
+		}
+	}
+	values = filtered
+
 	if slices.Contains(values, host) {
 		return
 	}
@@ -137,7 +147,8 @@ func (this *GWEnvironment) RemoveHost(key string, host string) {
 
 	newValues := []string{}
 	for _, v := range values {
-		if v != host {
+		// Filter out the target host and empty strings
+		if v != host && v != "" {
 			newValues = append(newValues, v)
 		}
 	}
