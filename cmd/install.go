@@ -98,7 +98,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 	err = os.WriteFile(
 		filepath.Join(dir, file),
 		buf,
-		0666,
+		0644,
 	)
 
 	if err != nil {
