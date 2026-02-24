@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func init() {
 }
 
 func migrateTotp(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerInterface.Env.Save()
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Migrating TOTP secrets and migration codes from Ghostwriter <=v6 to v6.1+.\n")

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +50,7 @@ func init() {
 }
 
 func migrateFiles(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 
 	// Get source (CWD) and destination (data directory) paths
 	sourcePath, err := os.Getwd()
@@ -80,7 +80,7 @@ func migrateFiles(cmd *cobra.Command, args []string) {
 	runningContainers := dockerInterface.GetRunning()
 	if len(runningContainers) > 0 {
 		fmt.Printf("[!] Warning: Found %d running Ghostwriter container(s).\n", len(runningContainers))
-		if !docker.AskForConfirmation("It's recommended to stop containers before migrating. Continue anyway?") {
+		if !internal.AskForConfirmation("It's recommended to stop containers before migrating. Continue anyway?") {
 			fmt.Println("Migration cancelled. Consider running 'ghostwriter-cli down' first.")
 			return
 		}
@@ -171,7 +171,7 @@ func migrateSSL(sourceBase, destBase string) (migrated, skipped int, errors []er
 
 	var sourceSSLDir string
 	for _, dir := range sourceDirs {
-		if docker.DirExists(dir) {
+		if internal.DirExists(dir) {
 			sourceSSLDir = dir
 			break
 		}
@@ -189,7 +189,7 @@ func migrateSSL(sourceBase, destBase string) (migrated, skipped int, errors []er
 		sourcePath := filepath.Join(sourceSSLDir, filename)
 		destPath := filepath.Join(destSSLDir, filename)
 
-		if !docker.FileExists(sourcePath) {
+		if !internal.FileExists(sourcePath) {
 			fmt.Printf("    ⊝ %s: not found\n", filename)
 			skipped++
 			continue
@@ -201,7 +201,7 @@ func migrateSSL(sourceBase, destBase string) (migrated, skipped int, errors []er
 			perm = 0600
 		}
 
-		wasMigrated, err := docker.MigrateFile(sourcePath, destPath, perm, true)
+		wasMigrated, err := internal.MigrateFile(sourcePath, destPath, perm, true)
 		if err != nil {
 			fmt.Printf("    ✗ %s: failed (%v)\n", filename, err)
 			errors = append(errors, fmt.Errorf("SSL file %s: %w", filename, err))
@@ -225,12 +225,12 @@ func migrateEnvFile(sourceBase, destBase string) (bool, error) {
 	sourcePath := filepath.Join(sourceBase, ".env")
 	destPath := filepath.Join(destBase, ".env")
 
-	if !docker.FileExists(sourcePath) {
+	if !internal.FileExists(sourcePath) {
 		fmt.Println("    .env: not found")
 		return false, nil
 	}
 
-	wasMigrated, err := docker.MigrateFile(sourcePath, destPath, 0600, true)
+	wasMigrated, err := internal.MigrateFile(sourcePath, destPath, 0600, true)
 	if err != nil {
 		fmt.Printf("    ✗ .env: failed (%v)\n", err)
 		return false, fmt.Errorf(".env file: %w", err)
@@ -250,14 +250,14 @@ func migrateSettings(sourceBase, destBase string) (migrated, skipped int, errors
 	sourceSettingsDir := filepath.Join(sourceBase, "config", "settings", "production.d")
 	destSettingsDir := filepath.Join(destBase, "settings")
 
-	if !docker.DirExists(sourceSettingsDir) {
+	if !internal.DirExists(sourceSettingsDir) {
 		fmt.Println("    No Django settings directory found (config/settings/production.d/)")
 		return 0, 0, nil
 	}
 
 	fmt.Printf("    Found settings directory: config/settings/production.d/\n")
 
-	result, err := docker.MigrateDirectory(sourceSettingsDir, destSettingsDir, true)
+	result, err := internal.MigrateDirectory(sourceSettingsDir, destSettingsDir, true)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("settings directory: %w", err))
 		fmt.Printf("    ✗ Failed to migrate settings: %v\n", err)
@@ -279,14 +279,14 @@ func migrateSettings(sourceBase, destBase string) (migrated, skipped int, errors
 
 // migrateVolumes detects and migrates Docker volumes from an old installation to the new setup.
 // This specifically migrates PRODUCTION volumes (not local dev volumes).
-func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (migrated, skipped int, errors []error) {
+func migrateVolumes(dockerInterface *internal.DockerInterface, sourceDir string) (migrated, skipped int, errors []error) {
 	// Check if an old production compose file exists in the source directory
 	// Note: We look for production.yml specifically because we're migrating production volumes
 	oldComposeFile := filepath.Join(sourceDir, "production.yml")
-	if !docker.FileExists(oldComposeFile) {
+	if !internal.FileExists(oldComposeFile) {
 		// Try alternative name (some old installations used docker-compose.yml)
 		oldComposeFile = filepath.Join(sourceDir, "docker-compose.yml")
-		if !docker.FileExists(oldComposeFile) {
+		if !internal.FileExists(oldComposeFile) {
 			fmt.Println("    No old production compose file found - skipping volume migration")
 			return 0, 0, nil
 		}
@@ -322,7 +322,7 @@ func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (
 	}
 
 	// Create backup before migration
-	if docker.AskForConfirmation("Create safety backup of the current contents of the destination volumes before volume migration?") {
+	if internal.AskForConfirmation("Create safety backup of the current contents of the destination volumes before volume migration?") {
 		fmt.Println("    Creating backup (this may take a few minutes)...")
 		// Temporarily start containers for backup
 		if err := dockerInterface.Up(); err == nil {
@@ -340,7 +340,7 @@ func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (
 	}
 
 	// Check if user wants to migrate volumes
-	if !docker.AskForConfirmation("Migrate Docker volumes? This will copy database and media files to new volumes") {
+	if !internal.AskForConfirmation("Migrate Docker volumes? This will copy database and media files to new volumes") {
 		fmt.Println("    Skipping volume migration")
 		return 0, len(volumesToMigrate), nil
 	}
@@ -417,7 +417,7 @@ func migrateVolumes(dockerInterface *docker.DockerInterface, sourceDir string) (
 	// Offer to clean up old volumes
 	if migrated > 0 {
 		fmt.Println()
-		if docker.AskForConfirmation("Delete old volumes to free disk space? (migrated data is preserved)") {
+		if internal.AskForConfirmation("Delete old volumes to free disk space? (migrated data is preserved)") {
 			for _, volumeKey := range volumesToMigrate {
 				var oldVolumeName string
 				for _, vol := range oldVolumes {

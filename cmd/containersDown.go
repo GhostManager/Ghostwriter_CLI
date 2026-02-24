@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -29,13 +29,13 @@ func init() {
 }
 
 func containersDown(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Bringing down the development environment")
 	} else {
 		fmt.Println("[+] Bringing down the production environment")
 	}
-	err := dockerInterface.Down(&docker.DownOptions{
+	err := dockerInterface.Down(&internal.DownOptions{
 		Volumes: volumes,
 	})
 	if err != nil {

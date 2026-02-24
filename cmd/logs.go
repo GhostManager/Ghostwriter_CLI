@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +34,7 @@ func init() {
 }
 
 func readLogs(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	lines := cmd.Flag("lines").Value.String()
 	fmt.Printf("[+] Fetching up to %s lines of logs for `%s`...\n", lines, args[0])
 	logs := dockerInterface.FetchLogs(args[0], lines)

@@ -6,7 +6,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/GhostManager/Ghostwriter_CLI/cmd/config"
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	utils "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +34,7 @@ func compareCliVersions(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("[+] Fetching latest version information:")
 
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerCurrentVersion, err := dockerInterface.GetVersion()
 	if err != nil {
 		return err

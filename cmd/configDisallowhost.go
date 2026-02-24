@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	env "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +22,7 @@ func init() {
 }
 
 func configDisallowHost(cmd *cobra.Command, args []string) {
-	env, err := env.ReadEnv(internal.GetDockerDirFromMode(mode))
+	env, err := internal.ReadEnv(internal.GetDockerDirFromMode(mode))
 	if err != nil {
 		log.Fatalf("Could not read environment file: %s\n", err)
 	}

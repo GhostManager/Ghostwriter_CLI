@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +35,7 @@ func init() {
 }
 
 func buildContainers(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Starting development environment build")
 	} else {

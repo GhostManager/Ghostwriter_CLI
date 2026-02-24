@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -42,7 +41,7 @@ func init() {
 }
 
 func restoreDatabase(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 
 	// Validate that containers are running and match the current mode
 	if err := dockerInterface.ValidateContainersRunning(); err != nil {
@@ -73,7 +72,7 @@ func restoreDatabase(cmd *cobra.Command, args []string) {
 
 // RunDockerComposeRestore executes the "docker compose" command to restore a PostgreSQL database backup in the
 // environment from the specified YAML file ("yaml" parameter).
-func restore(dockerInterface *docker.DockerInterface, restore string) {
+func restore(dockerInterface *internal.DockerInterface, restore string) {
 	fmt.Printf("[+] Restoring the PostgreSQL database backup file %s with %s...\n", restore, dockerInterface.ComposeFile)
 	backupErr := dockerInterface.RunComposeCmd("run", "--rm", "postgres", "restore", restore)
 	if backupErr != nil {
@@ -81,7 +80,7 @@ func restore(dockerInterface *docker.DockerInterface, restore string) {
 	}
 }
 
-func mediaRestore(dockerInterface *docker.DockerInterface, restore string) {
+func mediaRestore(dockerInterface *internal.DockerInterface, restore string) {
 	// Determine the volume keys based on the environment
 	var dataVolumeKey, backupVolumeKey string
 	if dockerInterface.UseDevInfra {

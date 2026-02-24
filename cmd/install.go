@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"time"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
@@ -49,7 +48,7 @@ func init() {
 }
 
 func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
-	dir := docker.GetDockerDirFromMode(mode)
+	dir := internal.GetDockerDirFromMode(mode)
 	file := "docker-compose.yml"
 
 	fmt.Println("[+] Downloading docker-compose.yml")
@@ -108,7 +107,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 }
 
 // Performs common setup
-func updateContainers(dockerInterface docker.DockerInterface) error {
+func updateContainers(dockerInterface internal.DockerInterface) error {
 	var err error
 	if dockerInterface.ManageComposeFile {
 		fmt.Println("[+] Pulling containers...")
@@ -151,7 +150,7 @@ func updateContainers(dockerInterface docker.DockerInterface) error {
 func installGhostwriter(cmd *cobra.Command, args []string) {
 	var err error
 
-	if mode == docker.ModeProd {
+	if mode == internal.ModeProd {
 		// Fetch and write docker-compose.yml file
 		err = fetchAndWriteComposeFile(mode, installVersion)
 		if err != nil {
@@ -160,14 +159,14 @@ func installGhostwriter(cmd *cobra.Command, args []string) {
 	}
 
 	// Get interface
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerInterface.Env.Save()
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Starting development environment installation")
 	} else {
 		fmt.Println("[+] Starting production environment installation")
-		docker.GenerateCertificatePackage(dockerInterface.Dir)
-		docker.PrepareSettingsDirectory(dockerInterface.Dir)
+		internal.GenerateCertificatePackage(dockerInterface.Dir)
+		internal.PrepareSettingsDirectory(dockerInterface.Dir)
 	}
 
 	err = updateContainers(*dockerInterface)

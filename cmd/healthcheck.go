@@ -14,7 +14,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/moby/moby/client"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +35,7 @@ func init() {
 }
 
 func runHealthcheck(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	// initialize tabwriter
 	writer := new(tabwriter.Writer)
 	// Set minwidth, tabwidth, padding, padchar, and flags
@@ -102,18 +102,18 @@ func (c HealthIssues) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }
 
-func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, error) {
+func checkDockerHealth(dockerInterface *internal.DockerInterface) (HealthIssues, error) {
 	var found []string
 	var imageName string
 	var issues HealthIssues
 
 	var requiredImages []string
 	if dockerInterface.UseDevInfra {
-		requiredImages = docker.DevImages
+		requiredImages = internal.DevImages
 	} else if dockerInterface.ManageComposeFile {
-		requiredImages = docker.SysProdImages
+		requiredImages = internal.SysProdImages
 	} else {
-		requiredImages = docker.ProdImages
+		requiredImages = internal.ProdImages
 	}
 
 	// Check running containers to make sure every necessary container is up
@@ -132,7 +132,7 @@ func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, e
 	if len(containers.Items) > 0 {
 		for _, container := range containers.Items {
 			// Use substring matching to handle both local builds and registry images
-			for _, imgName := range append(append(docker.DevImages, docker.ProdImages...), docker.SysProdImages...) {
+			for _, imgName := range append(append(internal.DevImages, internal.ProdImages...), internal.SysProdImages...) {
 				if strings.Contains(container.Image, imgName) {
 					found = append(found, imgName)
 					break
@@ -140,7 +140,7 @@ func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, e
 			}
 		}
 		for _, image := range requiredImages {
-			if !docker.Contains(found, image) {
+			if !internal.Contains(found, image) {
 				imageName = strings.ToUpper(image[strings.LastIndex(image, "_")+1:])
 				issues = append(issues, HealthIssue{"Container", imageName, "Container is not running"})
 			}
@@ -153,7 +153,7 @@ func checkDockerHealth(dockerInterface *docker.DockerInterface) (HealthIssues, e
 }
 
 // CheckGhostwriterHealth fetches the latest health reports from Ghostwriter's status API endpoint.
-func checkGhostwriterHealth(dockerInterface *docker.DockerInterface) (HealthIssues, error) {
+func checkGhostwriterHealth(dockerInterface *internal.DockerInterface) (HealthIssues, error) {
 	var issues HealthIssues
 
 	protocol := "https"

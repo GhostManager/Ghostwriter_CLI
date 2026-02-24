@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ func init() {
 func updateGhostwriter(cmd *cobra.Command, args []string) {
 	var err error
 
-	if mode == docker.ModeProd {
+	if mode == internal.ModeProd {
 		// Fetch and write docker-compose.yml file
 		err = fetchAndWriteComposeFile(mode, updateVersion)
 		if err != nil {
@@ -48,17 +48,17 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 	}
 
 	// Get interface
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerInterface.Env.Save()
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Starting development environment update")
 	} else {
 		fmt.Println("[+] Starting production environment update")
-		docker.PrepareSettingsDirectory(dockerInterface.Dir)
+		internal.PrepareSettingsDirectory(dockerInterface.Dir)
 	}
 
 	fmt.Println("[+] Tearing down containers...")
-	err = dockerInterface.Down(&docker.DownOptions{
+	err = dockerInterface.Down(&internal.DownOptions{
 		RemoveOrphans: true,
 	})
 	if err != nil {
@@ -72,7 +72,7 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 
 	fmt.Println("[+] Ghostwriter update complete!")
 
-	if !docker.AskForConfirmation("Would you like to keep the containers running?") {
+	if !internal.AskForConfirmation("Would you like to keep the containers running?") {
 		fmt.Println("[*] OK, bringing down containers...")
 		err = dockerInterface.Down(nil)
 		if err != nil {

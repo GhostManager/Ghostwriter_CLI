@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 func containersUp(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Bringing up the development environment")
 	} else {
@@ -37,5 +37,5 @@ func containersUp(cmd *cobra.Command, args []string) {
 		log.Fatalf("Error trying to bring up the containers with %s: %v\n", dockerInterface.ComposeFile, err)
 	}
 
-	docker.CheckLatestVersionNag(dockerInterface)
+	internal.CheckLatestVersionNag(dockerInterface)
 }

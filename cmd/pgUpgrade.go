@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	yaml "github.com/goccy/go-yaml"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ func init() {
 }
 
 func pgUpgrade(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerInterface.Env.Save()
 	interfix := ""
 	if dockerInterface.UseDevInfra {
@@ -133,7 +133,7 @@ func pgUpgrade(cmd *cobra.Command, args []string) {
 	fmt.Println("[+] All done")
 }
 
-func getVolumenAndNetworkName(dockerInterface *docker.DockerInterface, interfix string) (string, string) {
+func getVolumenAndNetworkName(dockerInterface *internal.DockerInterface, interfix string) (string, string) {
 	// Docker returns JSON output, but since YAML is a superset, we can use it to get fields.
 	volumePath, err := yaml.PathString(fmt.Sprintf("$.volumes.%s_postgres_data.name", interfix))
 	if err != nil {
@@ -164,7 +164,7 @@ func getVolumenAndNetworkName(dockerInterface *docker.DockerInterface, interfix 
 	return volume, network
 }
 
-func postgresVersionInstalled(dockerInterface *docker.DockerInterface) int {
+func postgresVersionInstalled(dockerInterface *internal.DockerInterface) int {
 	out, err := dockerInterface.RunCmdWithOutput("compose", "-f", dockerInterface.ComposeFile, "run", "--rm", "postgres", "psql", "--version")
 	if err != nil {
 		log.Fatalf("Error trying to get postgresql server version: %v\n", err)
@@ -182,7 +182,7 @@ func postgresVersionInstalled(dockerInterface *docker.DockerInterface) int {
 	return majorVersion
 }
 
-func postgresVersionForData(dockerInterface *docker.DockerInterface) int {
+func postgresVersionForData(dockerInterface *internal.DockerInterface) int {
 	out, err := dockerInterface.RunCmdWithOutput("compose", "-f", dockerInterface.ComposeFile, "run", "--rm", "postgres", "cat", "/var/lib/postgresql/data/PG_VERSION")
 	if err != nil {
 		log.Fatalf("Error trying to get postgresql data version: %v\n", err)

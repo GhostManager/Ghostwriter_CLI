@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	docker "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
+	internal "github.com/GhostManager/Ghostwriter_CLI/cmd/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ func init() {
 }
 
 func tagCleanUp(cmd *cobra.Command, args []string) {
-	dockerInterface := docker.GetDockerInterface(mode)
+	dockerInterface := internal.GetDockerInterface(mode)
 	dockerInterface.Env.Save()
 	if dockerInterface.UseDevInfra {
 		fmt.Println("[+] Executing tag cleanup in the development environment...")
@@ -42,7 +42,7 @@ func tagCleanUp(cmd *cobra.Command, args []string) {
 		log.Fatalf("Could not deduplicate tags: %s\n", err)
 	}
 
-	c := docker.AskForConfirmation("[?] Do you want to also remove orphaned tags?")
+	c := internal.AskForConfirmation("[?] Do you want to also remove orphaned tags?")
 	if !c {
 		os.Exit(0)
 	}
