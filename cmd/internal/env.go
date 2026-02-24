@@ -115,6 +115,10 @@ func (this *GWEnvironment) Get(key string) string {
 	return this.env.GetString(key)
 }
 
+func (this *GWEnvironment) GetBool(key string) bool {
+	return this.env.GetBool(key)
+}
+
 func (this *GWEnvironment) Set(key string, val string) {
 	this.env.Set(key, val)
 }

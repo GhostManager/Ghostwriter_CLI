@@ -35,7 +35,7 @@ func readLastVersionCheck(file string) int64 {
 }
 
 func CheckLatestVersionNag(docker *DockerInterface) {
-	if !docker.Env.env.GetBool("gwcli_auto_check_updates") {
+	if !docker.Env.GetBool("gwcli_auto_check_updates") {
 		return
 	}
 
