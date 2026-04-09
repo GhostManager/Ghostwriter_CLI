@@ -345,9 +345,11 @@ func migrateVolumes(dockerInterface *internal.DockerInterface, sourceDir string)
 		return 0, len(volumesToMigrate), nil
 	}
 
-	// List old production volumes to verify they exist
-	// This filters for volumes with "ghostwriter_production" in the name (not local dev volumes)
-	oldVolumes, err := dockerInterface.ListVolumes("ghostwriter_production")
+	// List old production volumes to verify they exist.
+	// We intentionally scope this to the canonical legacy project name so we
+	// only migrate well-known/official volume names.
+	const legacyProductionPrefix = "ghostwriter_production"
+	oldVolumes, err := dockerInterface.ListVolumes(legacyProductionPrefix)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("failed to list old volumes: %w", err))
 		return 0, 0, errors
@@ -358,18 +360,19 @@ func migrateVolumes(dockerInterface *internal.DockerInterface, sourceDir string)
 		return 0, 0, nil
 	}
 
-	fmt.Printf("    Found %d old production volume(s)\n", len(oldVolumes))
+	fmt.Printf("    Found %d old production volume(s) with prefix %q\n", len(oldVolumes), legacyProductionPrefix)
+
+	volumeSourceMap := map[string]string{}
+	for _, volumeKey := range volumesToMigrate {
+		matchedVolume := findLegacyVolumeByKey(oldVolumes, volumeKey)
+		if matchedVolume != "" {
+			volumeSourceMap[volumeKey] = matchedVolume
+		}
+	}
 
 	// Migrate each production volume
 	for _, volumeKey := range volumesToMigrate {
-		// Try to find the old volume by matching the volume key in its name
-		var oldVolumeName string
-		for _, vol := range oldVolumes {
-			if strings.Contains(vol, volumeKey) {
-				oldVolumeName = vol
-				break
-			}
-		}
+		oldVolumeName := volumeSourceMap[volumeKey]
 
 		if oldVolumeName == "" {
 			fmt.Printf("    ⊝ %s: not found\n", volumeKey)
@@ -418,21 +421,11 @@ func migrateVolumes(dockerInterface *internal.DockerInterface, sourceDir string)
 	if migrated > 0 {
 		fmt.Println()
 		if internal.AskForConfirmation("Delete old volumes to free disk space? (migrated data is preserved)") {
-			for _, volumeKey := range volumesToMigrate {
-				var oldVolumeName string
-				for _, vol := range oldVolumes {
-					if strings.Contains(vol, volumeKey) {
-						oldVolumeName = vol
-						break
-					}
-				}
-
-				if oldVolumeName != "" {
-					if err := dockerInterface.RunCmd("volume", "rm", oldVolumeName); err != nil {
-						fmt.Printf("    ⊖ Failed to delete %s: %v\n", oldVolumeName, err)
-					} else {
-						fmt.Printf("    ✓ Deleted %s\n", oldVolumeName)
-					}
+			for _, oldVolumeName := range volumeSourceMap {
+				if err := dockerInterface.RunCmd("volume", "rm", oldVolumeName); err != nil {
+					fmt.Printf("    ⊖ Failed to delete %s: %v\n", oldVolumeName, err)
+				} else {
+					fmt.Printf("    ✓ Deleted %s\n", oldVolumeName)
 				}
 			}
 		} else {
@@ -441,4 +434,16 @@ func migrateVolumes(dockerInterface *internal.DockerInterface, sourceDir string)
 	}
 
 	return migrated, skipped, errors
+}
+
+// findLegacyVolumeByKey returns the canonical legacy volume name for a given
+// logical compose volume key. We only accept exact suffix matches to avoid
+// migrating unrelated volumes.
+func findLegacyVolumeByKey(volumes []string, volumeKey string) string {
+	for _, vol := range volumes {
+		if strings.HasSuffix(vol, "_"+volumeKey) {
+			return vol
+		}
+	}
+	return ""
 }
