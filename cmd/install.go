@@ -139,8 +139,8 @@ func updateContainers(dockerInterface internal.DockerInterface, seedArgs ...stri
 	}
 
 	fmt.Println("[+] Seeding database with initial data...")
-	seedCmd := append([]string{"run", "--rm", "django", "/seed_data"}, seedArgs...)
-	err = dockerInterface.RunComposeCmd(seedCmd...)
+	// SeedDatabase retries without optional args when older Ghostwriter builds reject them.
+	err = internal.SeedDatabase(dockerInterface, seedArgs...)
 	if err != nil {
 		return fmt.Errorf("Could not seed database: %w", err)
 	}

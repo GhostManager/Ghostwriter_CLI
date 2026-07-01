@@ -234,10 +234,33 @@ func (this *DockerInterface) RunCmdWithOutput(args ...string) (string, error) {
 	return output, err
 }
 
+// RunCmdWithCombinedOutput runs docker/podman and returns stdout and stderr.
+// Use this when callers need to inspect command errors instead of streaming
+// output directly to the terminal.
+func (this *DockerInterface) RunCmdWithCombinedOutput(args ...string) (string, error) {
+	path, err := exec.LookPath(this.command)
+	if err != nil {
+		log.Fatalf("`%s` is not installed or not available in the current PATH variable", this.command)
+	}
+	command := exec.Command(path, args...)
+	command.Dir = this.Dir
+	command.Stdin = os.Stdin
+	out, err := command.CombinedOutput()
+	output := string(out[:])
+	return output, err
+}
+
 // Runs a `docker compose` subcommand, pointing to the configured compose file, with additional arguments.
 func (this *DockerInterface) RunComposeCmd(args ...string) error {
 	args = append([]string{"compose", "-f", this.ComposeFile}, args...)
 	return this.RunCmd(args...)
+}
+
+// RunComposeCmdWithCombinedOutput runs a docker compose subcommand and returns
+// stdout and stderr so callers can inspect command failures.
+func (this *DockerInterface) RunComposeCmdWithCombinedOutput(args ...string) (string, error) {
+	args = append([]string{"compose", "-f", this.ComposeFile}, args...)
+	return this.RunCmdWithCombinedOutput(args...)
 }
 
 // Bring all containers up
