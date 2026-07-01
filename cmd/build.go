@@ -8,9 +8,7 @@ import (
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Shortcut for `containers build`",
-	Run: func(cmd *cobra.Command, args []string) {
-		containersBuildCmd.Run(cmd, args)
-	},
+	Run:   buildContainers,
 }
 
 func init() {
