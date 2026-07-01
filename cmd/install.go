@@ -107,7 +107,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 }
 
 // Performs common setup
-func updateContainers(dockerInterface internal.DockerInterface) error {
+func updateContainers(dockerInterface internal.DockerInterface, seedArgs ...string) error {
 	var err error
 	if dockerInterface.ManageComposeFile {
 		fmt.Println("[+] Pulling containers...")
@@ -139,7 +139,8 @@ func updateContainers(dockerInterface internal.DockerInterface) error {
 	}
 
 	fmt.Println("[+] Seeding database with initial data...")
-	err = dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
+	// SeedDatabase retries without optional args when older Ghostwriter builds reject them.
+	err = internal.SeedDatabase(dockerInterface, seedArgs...)
 	if err != nil {
 		return fmt.Errorf("Could not seed database: %w", err)
 	}

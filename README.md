@@ -24,6 +24,7 @@ Usage:
 
 Available Commands:
   backup       Creates a backup of the PostgreSQL database
+  build        Shortcut for `containers build`
   completion   Generate the autocompletion script for the specified shell
   config       Display or adjust the configuration
   containers   Manage Ghostwriter containers with subcommands

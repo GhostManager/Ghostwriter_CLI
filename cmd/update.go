@@ -65,7 +65,7 @@ func updateGhostwriter(cmd *cobra.Command, args []string) {
 		log.Fatalf("Could not tear down containers: %v", err)
 	}
 
-	err = updateContainers(*dockerInterface)
+	err = updateContainers(*dockerInterface, "--required-only")
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}

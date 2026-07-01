@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -13,6 +14,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -234,10 +236,83 @@ func (this *DockerInterface) RunCmdWithOutput(args ...string) (string, error) {
 	return output, err
 }
 
+const commandOutputTailLimit = 64 * 1024
+
+type commandOutputTail struct {
+	mu    sync.Mutex
+	data  []byte
+	limit int
+}
+
+func newCommandOutputTail(limit int) *commandOutputTail {
+	return &commandOutputTail{limit: limit}
+}
+
+func (tail *commandOutputTail) Write(p []byte) (int, error) {
+	tail.mu.Lock()
+	defer tail.mu.Unlock()
+
+	if len(p) >= tail.limit {
+		tail.data = append(tail.data[:0], p[len(p)-tail.limit:]...)
+		return len(p), nil
+	}
+
+	tail.data = append(tail.data, p...)
+	if len(tail.data) > tail.limit {
+		tail.data = tail.data[len(tail.data)-tail.limit:]
+	}
+	return len(p), nil
+}
+
+func (tail *commandOutputTail) String() string {
+	tail.mu.Lock()
+	defer tail.mu.Unlock()
+	return string(tail.data)
+}
+
+type commandOutputTee struct {
+	terminal io.Writer
+	tail     *commandOutputTail
+}
+
+func (tee commandOutputTee) Write(p []byte) (int, error) {
+	if _, err := tee.tail.Write(p); err != nil {
+		return 0, err
+	}
+	if _, err := tee.terminal.Write(p); err != nil {
+		return 0, err
+	}
+	return len(p), nil
+}
+
+// RunCmdWithCombinedOutput streams docker/podman stdout and stderr to the
+// terminal while returning a bounded combined tail for error inspection.
+func (this *DockerInterface) RunCmdWithCombinedOutput(args ...string) (string, error) {
+	path, err := exec.LookPath(this.command)
+	if err != nil {
+		log.Fatalf("`%s` is not installed or not available in the current PATH variable", this.command)
+	}
+	outputTail := newCommandOutputTail(commandOutputTailLimit)
+	command := exec.Command(path, args...)
+	command.Dir = this.Dir
+	command.Stdin = os.Stdin
+	command.Stdout = commandOutputTee{terminal: os.Stdout, tail: outputTail}
+	command.Stderr = commandOutputTee{terminal: os.Stderr, tail: outputTail}
+	err = command.Run()
+	return outputTail.String(), err
+}
+
 // Runs a `docker compose` subcommand, pointing to the configured compose file, with additional arguments.
 func (this *DockerInterface) RunComposeCmd(args ...string) error {
 	args = append([]string{"compose", "-f", this.ComposeFile}, args...)
 	return this.RunCmd(args...)
+}
+
+// RunComposeCmdWithCombinedOutput streams a docker compose subcommand and
+// returns a bounded combined output tail so callers can inspect failures.
+func (this *DockerInterface) RunComposeCmdWithCombinedOutput(args ...string) (string, error) {
+	args = append([]string{"compose", "-f", this.ComposeFile}, args...)
+	return this.RunCmdWithCombinedOutput(args...)
 }
 
 // Bring all containers up

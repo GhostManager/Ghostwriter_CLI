@@ -30,7 +30,7 @@ func init() {
 		&skipseed,
 		"skip-seed",
 		false,
-		`Skip (re-)seeding the database. This is useful when upgrading an existing and you know there are no new or adjusted values.`,
+		`Skip (re-)seeding the database. This is useful when upgrading an existing installation and you know there are no new or adjusted values.`,
 	)
 }
 
@@ -61,7 +61,8 @@ func buildContainers(cmd *cobra.Command, args []string) {
 		for {
 			if dockerInterface.WaitForDjango() {
 				fmt.Println("[+] Re-seeding database in case initial values were added or adjusted...")
-				seedErr := dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
+				// SeedDatabase retries without optional args when older Ghostwriter builds reject them.
+				seedErr := internal.SeedDatabase(*dockerInterface, "--required-only")
 				if seedErr != nil {
 					log.Fatalf("Error trying to seed the database: %v\n", seedErr)
 				}
