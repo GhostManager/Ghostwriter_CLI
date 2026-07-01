@@ -107,7 +107,7 @@ func fetchAndWriteComposeFile(mode internal.DockerMode, version string) error {
 }
 
 // Performs common setup
-func updateContainers(dockerInterface internal.DockerInterface) error {
+func updateContainers(dockerInterface internal.DockerInterface, seedArgs ...string) error {
 	var err error
 	if dockerInterface.ManageComposeFile {
 		fmt.Println("[+] Pulling containers...")
@@ -139,7 +139,8 @@ func updateContainers(dockerInterface internal.DockerInterface) error {
 	}
 
 	fmt.Println("[+] Seeding database with initial data...")
-	err = dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
+	seedCmd := append([]string{"run", "--rm", "django", "/seed_data"}, seedArgs...)
+	err = dockerInterface.RunComposeCmd(seedCmd...)
 	if err != nil {
 		return fmt.Errorf("Could not seed database: %w", err)
 	}

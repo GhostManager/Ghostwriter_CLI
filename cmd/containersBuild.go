@@ -61,7 +61,7 @@ func buildContainers(cmd *cobra.Command, args []string) {
 		for {
 			if dockerInterface.WaitForDjango() {
 				fmt.Println("[+] Re-seeding database in case initial values were added or adjusted...")
-				seedErr := dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data")
+				seedErr := dockerInterface.RunComposeCmd("run", "--rm", "django", "/seed_data", "--required-only")
 				if seedErr != nil {
 					log.Fatalf("Error trying to seed the database: %v\n", seedErr)
 				}
