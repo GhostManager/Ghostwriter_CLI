@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-rc1] - 2026-02-24
+## [1.0.1] - 2026-07-01
+
+### Added
+
+* Added a `build` command that is a shortcut for `containers build`
+
+### Changed
+
+* Adjusted the `build` and `update` commands to use Ghostwriter v7.2.1's `--required-only` flag for database fixtures
+  * Ghostwriter CLI will now skip re-seeding database entries marked as `required: false`
+  * For now, the starter templates are flagged as non-required so they will not return with updates if an admin deletes them
+
+## [1.0.0] - 2026-04-09
 
 ### Added
 
