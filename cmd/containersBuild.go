@@ -30,7 +30,7 @@ func init() {
 		&skipseed,
 		"skip-seed",
 		false,
-		`Skip (re-)seeding the database. This is useful when upgrading an existing and you know there are no new or adjusted values.`,
+		`Skip (re-)seeding the database. This is useful when upgrading an existing installation and you know there are no new or adjusted values.`,
 	)
 }
 
